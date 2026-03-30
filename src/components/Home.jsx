@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { 
   Search, Home, History, User, Info, LogOut, 
-  Zap, TrendingUp, Package, ChevronRight, Bell, Menu, X
+  Zap, TrendingUp, Package, ChevronRight, Bell, Menu, X, Loader2, AlertCircle, Check, Medal
 } from "lucide-react";
-// import AuthService from "../services/AuthService";
+import ProductService from "../services/productService";
+import AuthService from "../services/authService";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -17,6 +18,12 @@ const HomePage = () => {
   // State for Mobile (Open vs Closed)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Comparison Results States
+  const [comparisonResults, setComparisonResults] = useState(null);
+  const [isLoadingComparison, setIsLoadingComparison] = useState(false);
+  const [comparisonError, setComparisonError] = useState("");
+  const [expandedRecommendations, setExpandedRecommendations] = useState({});
+
   // Close mobile menu automatically when screen resizes to desktop
   useEffect(() => {
     const handleResize = () => {
@@ -28,14 +35,37 @@ const HomePage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleLogout = () => {
-    AuthService.logout();
+  const handleLogout = async () => {
+    await AuthService.logout();
     navigate("/login");
   };
 
-  const handleSearch = (e) => {
+  const toggleRecommendation = (key) => {
+    setExpandedRecommendations((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const handleSearch = async (e) => {
     e.preventDefault();
-    console.log("Searching for:", searchQuery);
+    if (!searchQuery.trim()) {
+      setComparisonError("Please enter a product name or URL");
+      return;
+    }
+
+    setIsLoadingComparison(true);
+    setComparisonError("");
+    setComparisonResults(null);
+
+    try {
+      const results = await ProductService.compare({ query: searchQuery });
+      setComparisonResults(results);
+    } catch (error) {
+      setComparisonError(error.message || "Failed to compare products. Please try again.");
+    } finally {
+      setIsLoadingComparison(false);
+    }
   };
 
   // --- MOCK DATA ---
@@ -204,6 +234,308 @@ const HomePage = () => {
               </div>
             </form>
           </div>
+
+          {/* COMPARISON RESULTS SECTION */}
+          {isLoadingComparison && (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center space-y-4">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto" />
+                <p className="text-slate-400">Comparing prices across stores...</p>
+              </div>
+            </div>
+          )}
+
+          {comparisonError && (
+            <div className="bg-red-500/10 border border-red-500/50 rounded-2xl p-4 md:p-6 flex items-start gap-4 backdrop-blur-sm">
+              <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-red-300 font-bold mb-1">Search Error</h3>
+                <p className="text-red-200 text-sm">{comparisonError}</p>
+              </div>
+            </div>
+          )}
+
+          {comparisonResults && comparisonResults.results && comparisonResults.results.length > 0 && (
+            <div className="space-y-8 animate-fade-in-up">
+              <div className="text-center space-y-2 mb-8">
+                <h3 className="text-2xl md:text-3xl font-bold">Search Results for "<span className="text-blue-400">{searchQuery}</span>"</h3>
+                <p className="text-slate-400 text-sm">
+                  Found {comparisonResults.results.length} option{comparisonResults.results.length !== 1 ? 's' : ''} • 
+                  Best price: <span className="text-emerald-400 font-semibold">${comparisonResults.metadata?.min_price || 'N/A'}</span>
+                </p>
+              </div>
+
+              {/* BEST DEAL - Featured Product */}
+              {(() => {
+                const sortedResults = [...comparisonResults.results].sort((a, b) => (b.score || 0) - (a.score || 0));
+                const bestDeal = sortedResults[0];
+                const recommendations = sortedResults.slice(1);
+
+                return (
+                  <>
+                    {/* Featured Card */}
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl blur-xl opacity-20"></div>
+                      <div className="relative bg-gradient-to-br from-blue-600/20 to-indigo-600/20 border-2 border-blue-500/30 rounded-3xl p-6 md:p-8 backdrop-blur-md hover:border-blue-500/50 transition-all">
+                        <div className="flex items-center gap-3 mb-4">
+                          <span className="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full">⭐ BEST DEAL</span>
+                          <span className="text-sm text-slate-300">Score: <span className="text-blue-400 font-bold">{bestDeal.score?.toFixed(1)}/10</span></span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                          {/* Product Image & Info */}
+                          <div className="md:col-span-1 flex flex-col items-center justify-start">
+                            <div className="w-full aspect-square bg-slate-800/50 rounded-2xl overflow-hidden mb-4 flex items-center justify-center border border-white/10">
+                              {bestDeal.product?.image_url ? (
+                                <img 
+                                  src={bestDeal.product.image_url} 
+                                  alt={bestDeal.product.title}
+                                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                                />
+                              ) : (
+                                <Package className="w-16 h-16 text-slate-600" />
+                              )}
+                            </div>
+                            <div className="w-full space-y-2 text-sm">
+                              {bestDeal.product?.in_stock && (
+                                <div className="flex items-center gap-2 text-emerald-400">
+                                  <Check className="w-4 h-4" />
+                                  <span className="font-semibold">In Stock</span>
+                                </div>
+                              )}
+                              <div className="text-slate-400">
+                                <p className="text-xs">Store Rating</p>
+                                <p className="text-white font-bold">⭐ {bestDeal.store_rating}/5</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Product Details & Pricing */}
+                          <div className="md:col-span-2 space-y-4">
+                            <div>
+                              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 line-clamp-2">
+                                {bestDeal.product?.title}
+                              </h3>
+                              <p className="text-slate-400 text-sm line-clamp-2">From: <span className="text-blue-300 font-semibold capitalize">{bestDeal.source}</span></p>
+                            </div>
+
+                            {/* Pricing Breakdown */}
+                            <div className="bg-slate-900/50 rounded-2xl p-4 space-y-2 border border-white/5">
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Item Price:</span>
+                                <span className="text-white font-bold">${bestDeal.pricing?.item_price}</span>
+                              </div>
+                              {bestDeal.pricing?.shipping_fee > 0 && (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-slate-400">Shipping:</span>
+                                  <span className="text-white font-bold">${bestDeal.pricing.shipping_fee}</span>
+                                </div>
+                              )}
+                              <div className="border-t border-white/10 pt-2 flex justify-between items-center">
+                                <span className="text-emerald-400 font-bold">Total Price:</span>
+                                <span className="text-emerald-400 text-2xl font-bold">${bestDeal.pricing?.total_price}</span>
+                              </div>
+                            </div>
+
+                            {/* Score Details */}
+                            <div className="grid grid-cols-3 gap-3">
+                              <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
+                                <p className="text-xs text-slate-400 mb-1">Price</p>
+                                <p className="text-indigo-400 font-bold">{bestDeal.score_breakdown?.price_score?.toFixed(1)}</p>
+                              </div>
+                              <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
+                                <p className="text-xs text-slate-400 mb-1">Delivery</p>
+                                <p className="text-blue-400 font-bold">{bestDeal.score_breakdown?.delivery_score?.toFixed(1)}</p>
+                              </div>
+                              <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
+                                <p className="text-xs text-slate-400 mb-1">Trust</p>
+                                <p className="text-emerald-400 font-bold">{bestDeal.score_breakdown?.trust_score?.toFixed(1)}</p>
+                              </div>
+                            </div>
+
+                            {/* Delivery Info */}
+                            <div className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-2">
+                              <p className="text-sm text-slate-300">
+                                <span className="font-semibold">📦 Delivery:</span> {bestDeal.delivery_days} business days
+                              </p>
+                              {bestDeal.pricing?.delivery_time && (
+                                <p className="text-sm text-slate-300">
+                                  <span className="font-semibold">⏱️ Time:</span> {bestDeal.pricing.delivery_time}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Action Button */}
+                            <Link
+                              to={bestDeal.product?.url || "#"}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-blue-500/25"
+                            >
+                              View on Store →
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* RANKINGS */}
+                    <div className="space-y-4 mt-8">
+                      <h4 className="text-xl font-bold text-white">Top Rankings</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {(() => {
+                          const byPrice = [...sortedResults].sort((a, b) => (a.pricing?.total_price || Infinity) - (b.pricing?.total_price || Infinity))[0];
+                          const byDelivery = [...sortedResults].sort((a, b) => (a.delivery_days || Infinity) - (b.delivery_days || Infinity))[0];
+                          const byReliability = [...sortedResults].sort((a, b) => (b.store_rating || 0) - (a.store_rating || 0))[0];
+
+                          const rankCards = [
+                            { label: "Best Price", item: byPrice, value: byPrice?.pricing?.total_price ? `$${byPrice.pricing.total_price}` : "N/A" },
+                            { label: "Best Delivery", item: byDelivery, value: byDelivery?.delivery_days ? `${byDelivery.delivery_days} days` : "N/A" },
+                            { label: "Best Reliability", item: byReliability, value: byReliability?.store_rating ? `${byReliability.store_rating}/5` : "N/A" },
+                          ];
+
+                          return rankCards.map((card) => (
+                            <div key={card.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-md">
+                              <p className="text-xs text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Medal className="w-4 h-4 text-amber-400" /> {card.label}
+                              </p>
+                              <p className="text-white font-bold text-sm line-clamp-2">{card.item?.product?.title || "No data"}</p>
+                              <p className="text-emerald-400 font-semibold mt-1">{card.value}</p>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* RECOMMENDATIONS */}
+                    {recommendations.length > 0 && (
+                      <div className="space-y-4 mt-8">
+                        <h4 className="text-xl font-bold text-white">Other Options</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {recommendations.map((product, idx) => (
+                            (() => {
+                              const recommendationKey = `${product.product?.url || product.source || "rec"}-${idx}`;
+                              const isExpanded = !!expandedRecommendations[recommendationKey];
+                              return (
+                            <div 
+                              key={recommendationKey}
+                              className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-md hover:bg-white/[0.07] transition-all hover:shadow-lg hover:shadow-blue-500/10 group cursor-pointer"
+                            >
+                              <div className="flex gap-4">
+                                {/* Small Image */}
+                                <div className="w-20 h-20 rounded-xl bg-slate-800/50 flex-shrink-0 overflow-hidden flex items-center justify-center border border-white/5">
+                                  {product.product?.image_url ? (
+                                    <img 
+                                      src={product.product.image_url}
+                                      alt={product.product.title}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <Package className="w-8 h-8 text-slate-600" />
+                                  )}
+                                </div>
+
+                                {/* Product Details */}
+                                <div className="flex-1 flex flex-col justify-between min-w-0">
+                                  <div>
+                                    <h5 className="font-bold text-white group-hover:text-blue-300 transition-colors line-clamp-2 text-sm">
+                                      {product.product?.title}
+                                    </h5>
+                                    <p className="text-xs text-slate-400 mt-1">
+                                      {product.source} • {product.store_rating}⭐
+                                    </p>
+                                  </div>
+                                  
+                                  <div className="flex items-end justify-between gap-2">
+                                    <div>
+                                      <p className="text-emerald-400 text-lg font-bold">${product.pricing?.total_price}</p>
+                                      <p className="text-xs text-slate-400">{product.delivery_days}d delivery</p>
+                                    </div>
+                                    <div className="bg-white/10 px-2 py-1 rounded text-xs font-semibold text-slate-300">
+                                      {product.score?.toFixed(1)}/10
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="mt-4 flex items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleRecommendation(recommendationKey)}
+                                  className="flex-1 bg-white/10 hover:bg-white/15 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+                                >
+                                  {isExpanded ? "Hide Details" : "View Details"}
+                                </button>
+                                <Link
+                                  to={product.product?.url || "#"}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex-1 text-center bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+                                >
+                                  Go to Store
+                                </Link>
+                              </div>
+
+                              {isExpanded && (
+                                <div className="mt-4 p-4 rounded-xl bg-slate-900/60 border border-white/10 space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-400">Item Price</span>
+                                    <span className="text-white font-medium">${product.pricing?.item_price ?? "N/A"}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-400">Shipping</span>
+                                    <span className="text-white font-medium">${product.pricing?.shipping_fee ?? 0}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-400">Delivery Time</span>
+                                    <span className="text-white font-medium">{product.pricing?.delivery_time || product.pricing?.breakdown?.delivery_time || "N/A"}</span>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-2 mt-2">
+                                    <div className="rounded-lg bg-white/5 p-2 text-center">
+                                      <p className="text-[11px] text-slate-400">Price</p>
+                                      <p className="text-indigo-400 font-bold">{product.score_breakdown?.price_score?.toFixed(1) ?? "N/A"}</p>
+                                    </div>
+                                    <div className="rounded-lg bg-white/5 p-2 text-center">
+                                      <p className="text-[11px] text-slate-400">Delivery</p>
+                                      <p className="text-blue-400 font-bold">{product.score_breakdown?.delivery_score?.toFixed(1) ?? "N/A"}</p>
+                                    </div>
+                                    <div className="rounded-lg bg-white/5 p-2 text-center">
+                                      <p className="text-[11px] text-slate-400">Trust</p>
+                                      <p className="text-emerald-400 font-bold">{product.score_breakdown?.trust_score?.toFixed(1) ?? "N/A"}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                              );
+                            })()
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+
+              {/* Metadata Info */}
+              {comparisonResults.metadata && (
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-slate-400 space-y-1">
+                  <p>📊 Checked {comparisonResults.metadata.sites_checked} stores • {comparisonResults.metadata.sites_succeeded} found results</p>
+                  {comparisonResults.metadata.search_id && (
+                    <p className="text-xs text-slate-500">Search ID: #{comparisonResults.metadata.search_id}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {comparisonResults && (!comparisonResults.results || comparisonResults.results.length === 0) && (
+            <div className="text-center py-12">
+              <Package className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-400 text-lg">No products found for your search.</p>
+              <p className="text-slate-500 text-sm mt-2">Try a different search or check back later.</p>
+            </div>
+          )}
 
           {/* 2. DASHBOARD WIDGETS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

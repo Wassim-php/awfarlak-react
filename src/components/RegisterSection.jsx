@@ -1,7 +1,49 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { User, Mail, Lock, Eye, EyeOff, UserPlus, AlertCircle, CheckCircle, MapPin, Building2, Home } from "lucide-react";
-// import authService from "../services/AuthService";
+import authService from "../services/authService";
+
+const InputField = ({
+  label,
+  name,
+  type = "text",
+  icon: Icon,
+  placeholder,
+  error,
+  value,
+  onChange,
+  showToggle,
+  onToggle,
+}) => (
+  <div>
+    <label className="block text-xs font-bold text-blue-200 uppercase tracking-wider mb-1.5 ml-1">
+      {label}
+    </label>
+    <div className="relative group">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <Icon className={`h-4 w-4 ${error ? "text-red-400" : "text-blue-300"} group-focus-within:text-white transition-colors`} />
+      </div>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className={`block w-full pl-10 pr-4 py-3 bg-slate-800/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-1 transition-all text-sm font-medium
+          ${error
+            ? "border-red-500/50 focus:border-red-500 focus:ring-red-500"
+            : "border-slate-600 focus:border-blue-500 focus:ring-blue-500"
+          }`}
+        placeholder={placeholder}
+      />
+      {showToggle && (
+        <button type="button" onClick={onToggle} className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white cursor-pointer">
+          {type === "password" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      )}
+    </div>
+    {error && <p className="text-red-300 text-[10px] mt-1 ml-1 font-medium">{error}</p>}
+  </div>
+);
 
 const RegisterSection = () => {
   const navigate = useNavigate();
@@ -45,11 +87,6 @@ const RegisterSection = () => {
       errors.passwordConfirmation = "Passwords do not match";
     }
 
-    // Conditional Validation for Address
-    if (formData.locationType === "Outside Beirut" && !formData.address.trim()) {
-      errors.address = "Address is required for delivery outside Beirut";
-    }
-
     if (!formData.accept) errors.accept = "Required";
 
     return errors;
@@ -68,59 +105,26 @@ const RegisterSection = () => {
   };
 
   const handleSubmit = async (e) => {
-    // e.preventDefault();
-    // if (isSubmitting) return;
+    e.preventDefault();
+    if (isSubmitting) return;
 
-    // const errors = validateForm();
-    // if (Object.keys(errors).length > 0) {
-    //   setFormErrors(errors);
-    //   return;
-    // }
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
 
-    // setIsSubmitting(true);
-    // try {
-    //   // NOTE: Ensure your backend accepts 'locationType' and 'address'
-    //   await authService.register(formData);
-    //   navigate("/login");
-    // } catch (error) {
-    //   const msg = error.response?.data?.message || error.message || "Registration failed";
-    //   setGeneralError(msg);
-    // } finally {
-    //   setIsSubmitting(false);
-    // }
+    setIsSubmitting(true);
+    try {
+      await authService.register(formData);
+      navigate("/login");
+    } catch (error) {
+      const msg = error.message || "Registration failed";
+      setGeneralError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  // Reusable Input
-  const InputField = ({ label, name, type = "text", icon: Icon, placeholder, error, showToggle, onToggle }) => (
-    <div>
-      <label className="block text-xs font-bold text-blue-200 uppercase tracking-wider mb-1.5 ml-1">
-        {label}
-      </label>
-      <div className="relative group">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Icon className={`h-4 w-4 ${error ? "text-red-400" : "text-blue-300"} group-focus-within:text-white transition-colors`} />
-        </div>
-        <input
-          type={type}
-          name={name}
-          value={formData[name]}
-          onChange={handleChange}
-          className={`block w-full pl-10 pr-4 py-3 bg-slate-800/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-1 transition-all text-sm font-medium
-            ${error 
-              ? "border-red-500/50 focus:border-red-500 focus:ring-red-500" 
-              : "border-slate-600 focus:border-blue-500 focus:ring-blue-500"
-            }`}
-          placeholder={placeholder}
-        />
-        {showToggle && (
-          <button type="button" onClick={onToggle} className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white cursor-pointer">
-            {type === "password" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        )}
-      </div>
-      {error && <p className="text-red-300 text-[10px] mt-1 ml-1 font-medium">{error}</p>}
-    </div>
-  );
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative overflow-hidden font-sans py-10">
@@ -156,8 +160,8 @@ const RegisterSection = () => {
             )}
 
             {/* Username & Email */}
-            <InputField label="Username" name="username" icon={User} placeholder="johndoe" error={formErrors.username} />
-            <InputField label="Email Address" name="email" type="email" icon={Mail} placeholder="john@example.com" error={formErrors.email} />
+            <InputField label="Username" name="username" icon={User} placeholder="johndoe" error={formErrors.username} value={formData.username} onChange={handleChange} />
+            <InputField label="Email Address" name="email" type="email" icon={Mail} placeholder="john@example.com" error={formErrors.email} value={formData.email} onChange={handleChange} />
 
             {/* Passwords */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -166,6 +170,8 @@ const RegisterSection = () => {
                 type={showPassword ? "text" : "password"} 
                 icon={Lock} placeholder="••••••••" 
                 error={formErrors.password}
+                value={formData.password}
+                onChange={handleChange}
                 showToggle={true} onToggle={() => setShowPassword(!showPassword)}
               />
               <InputField 
@@ -173,6 +179,8 @@ const RegisterSection = () => {
                 type={showConfirm ? "text" : "password"} 
                 icon={Lock} placeholder="••••••••" 
                 error={formErrors.passwordConfirmation}
+                value={formData.passwordConfirmation}
+                onChange={handleChange}
                 showToggle={true} onToggle={() => setShowConfirm(!showConfirm)}
               />
             </div>
@@ -220,7 +228,9 @@ const RegisterSection = () => {
                 name="address" 
                 icon={Home} 
                 placeholder="City, Street, Building, Floor..." 
-                error={formErrors.address} 
+                error={formErrors.address}
+                value={formData.address}
+                onChange={handleChange}
               />
             </div>
 

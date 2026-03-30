@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, TrendingDown } from "lucide-react";
-// import AuthService from "../services/AuthService";
+import AuthService from "../services/authService";
 
 const LoginSection = () => {
   const navigate = useNavigate();
@@ -22,19 +22,19 @@ const LoginSection = () => {
   };
 
   const handleSubmit = async (e) => {
-    // e.preventDefault();
-    // setLoading(true);
-    // setError("");
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-    // try {
-    //   await AuthService.login(credentials.username, credentials.password);
-    //   navigate("/dashboard");
-    // } catch (err) {
-    //   const msg = err.detail || "Invalid credentials. Please try again.";
-    //   setError(msg);
-    // } finally {
-    //   setLoading(false);
-    // }
+    try {
+      await AuthService.login(credentials.username, credentials.password);
+      navigate("/home");
+    } catch (err) {
+      const msg = err.message || "Invalid credentials. Please try again.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
