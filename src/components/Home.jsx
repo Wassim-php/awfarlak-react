@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { 
-  Search, Home, History, User, Info, LogOut, 
-  Zap, TrendingUp, Package, ChevronRight, Bell, Menu, X, Loader2, AlertCircle, Check, Medal
+  Search, History,
+  TrendingUp, Package, ChevronRight, Bell, Menu, Loader2, AlertCircle, Check, Medal
 } from "lucide-react";
 import ProductService from "../services/productService";
 import AuthService from "../services/authService";
+import HistoryService, { mapSearchDetailsToComparisonResults, normalizeSearchHistory } from "../services/historyService";
+import SidebarNav from "./SidebarNav";
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("home");
   
   // State for Desktop (Wide vs Slim)
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
@@ -23,6 +25,47 @@ const HomePage = () => {
   const [isLoadingComparison, setIsLoadingComparison] = useState(false);
   const [comparisonError, setComparisonError] = useState("");
   const [expandedRecommendations, setExpandedRecommendations] = useState({});
+  const [recentSearches, setRecentSearches] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [isClearingHistory, setIsClearingHistory] = useState(false);
+  const [handledNavigationSearchId, setHandledNavigationSearchId] = useState(null);
+
+  const handleRecentSearchClick = async (searchItem) => {
+    if (!searchItem?.id) {
+      setSearchQuery(searchItem?.query || "");
+      return;
+    }
+
+    setSearchQuery(searchItem.query || "");
+    setComparisonError("");
+    setIsLoadingComparison(true);
+
+    try {
+      const details = await HistoryService.getSearchDetails(searchItem.id);
+      setComparisonResults(mapSearchDetailsToComparisonResults(details));
+    } catch (error) {
+      setComparisonError(error.message || "Failed to load this search details.");
+    } finally {
+      setIsLoadingComparison(false);
+    }
+  };
+
+  const handleClearHistory = async () => {
+    const confirmed = window.confirm("Are you sure you want to clear your search history?");
+    if (!confirmed) return;
+
+    setIsClearingHistory(true);
+    try {
+      await HistoryService.clearHistory();
+      setRecentSearches([]);
+      setComparisonResults(null);
+      setComparisonError("");
+    } catch (error) {
+      setComparisonError(error.message || "Failed to clear search history.");
+    } finally {
+      setIsClearingHistory(false);
+    }
+  };
 
   // Close mobile menu automatically when screen resizes to desktop
   useEffect(() => {
@@ -34,6 +77,62 @@ const HomePage = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSearchHistory = async () => {
+      setIsLoadingHistory(true);
+      try {
+        const historyResponse = await HistoryService.getUserSearchHistory();
+        if (isMounted) {
+          setRecentSearches(normalizeSearchHistory(historyResponse).slice(0, 3));
+        }
+      } catch (_error) {
+        if (isMounted) {
+          setRecentSearches([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingHistory(false);
+        }
+      }
+    };
+
+    loadSearchHistory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const selectedSearchId = location.state?.historySearchId;
+    const selectedQuery = location.state?.historyQuery;
+
+    if (!selectedSearchId || selectedSearchId === handledNavigationSearchId) {
+      return;
+    }
+
+    const loadSelectedSearchDetails = async () => {
+      setHandledNavigationSearchId(selectedSearchId);
+      setSearchQuery(selectedQuery || "");
+      setComparisonError("");
+      setIsLoadingComparison(true);
+
+      try {
+        const details = await HistoryService.getSearchDetails(selectedSearchId);
+        setComparisonResults(mapSearchDetailsToComparisonResults(details));
+      } catch (error) {
+        setComparisonError(error.message || "Failed to load this search details.");
+      } finally {
+        setIsLoadingComparison(false);
+        navigate(location.pathname, { replace: true, state: null });
+      }
+    };
+
+    loadSelectedSearchDetails();
+  }, [location, handledNavigationSearchId, navigate]);
 
   const handleLogout = async () => {
     await AuthService.logout();
@@ -85,94 +184,14 @@ const HomePage = () => {
       </div>
 
       {/* --- MOBILE OVERLAY BACKDROP --- */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-40 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* --- SIDEBAR (Responsive) --- */}
-      <aside 
-        className={`
-          fixed md:static inset-y-0 left-0 z-50
-          bg-slate-900/50 backdrop-blur-xl border-r border-white/5 
-          transition-all duration-300 ease-in-out flex flex-col
-          ${isMobileMenuOpen ? "translate-x-0 w-64" : "-translate-x-full md:translate-x-0"}
-          ${isDesktopSidebarOpen ? "md:w-64" : "md:w-20"}
-        `}
-      >
-        {/* Mobile Close Button */}
-        <button 
-          onClick={() => setIsMobileMenuOpen(false)}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white md:hidden"
-        >
-          <X className="w-6 h-6" />
-        </button>
-
-        {/* Desktop Toggle Button */}
-        <button 
-          onClick={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
-          className="hidden md:flex absolute -right-3 top-24 bg-blue-600 rounded-full p-1 border border-slate-900 text-white shadow-lg hover:bg-blue-500 transition-colors z-50"
-        >
-          <ChevronRight className={`w-4 h-4 transition-transform ${isDesktopSidebarOpen ? "rotate-180" : ""}`} />
-        </button>
-
-        {/* Logo Area */}
-        <div className="h-20 flex items-center justify-center border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            {/* Show Text if Mobile OR (Desktop & Expanded) */}
-            <span className={`font-bold text-lg tracking-tight transition-opacity duration-200 ${
-              (!isDesktopSidebarOpen && "md:opacity-0 md:hidden") 
-            }`}>
-              PriceTracker
-            </span>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
-          <NavItem 
-            icon={Home} label="Home" active={activeTab === "home"} 
-            onClick={() => { setActiveTab("home"); setIsMobileMenuOpen(false); }} 
-            showLabel={isDesktopSidebarOpen} 
-          />
-          <NavItem 
-            icon={History} label="Search History" active={activeTab === "history"} 
-            onClick={() => { setActiveTab("history"); setIsMobileMenuOpen(false); }} 
-            showLabel={isDesktopSidebarOpen} 
-          />
-          <NavItem 
-            icon={User} label="My Account" active={activeTab === "account"} 
-            onClick={() => { setActiveTab("account"); setIsMobileMenuOpen(false); }} 
-            showLabel={isDesktopSidebarOpen} 
-          />
-          <NavItem 
-            icon={Info} label="About & Help" active={activeTab === "about"} 
-            onClick={() => { setActiveTab("about"); setIsMobileMenuOpen(false); }} 
-            showLabel={isDesktopSidebarOpen} 
-          />
-        </nav>
-
-        {/* Logout */}
-        <div className="p-4 border-t border-white/5">
-          <button 
-            onClick={handleLogout}
-            className={`flex items-center gap-3 w-full p-3 rounded-xl hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-all ${!isDesktopSidebarOpen && "md:justify-center"}`}
-            title="Sign Out"
-          >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            <span className={`font-medium text-sm whitespace-nowrap transition-all ${
-               (!isDesktopSidebarOpen && "md:hidden")
-            }`}>
-              Sign Out
-            </span>
-          </button>
-        </div>
-      </aside>
+      <SidebarNav
+        activeTab="home"
+        onLogout={handleLogout}
+        isDesktopSidebarOpen={isDesktopSidebarOpen}
+        setIsDesktopSidebarOpen={setIsDesktopSidebarOpen}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+      />
 
       {/* --- MAIN CONTENT --- */}
       <main className="flex-1 relative z-10 overflow-y-auto h-screen">
@@ -575,16 +594,51 @@ const HomePage = () => {
                 <History className="w-5 h-5 text-blue-400" /> Recent Searches
               </h3>
               <div className="flex-1 space-y-3">
-                {["PlayStation 5", "Nike Air Force 1", "Samsung S24 Ultra"].map((term, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 cursor-pointer text-slate-300 hover:text-white transition-colors group">
-                    <span className="truncate">{term}</span>
-                    <ChevronRight className="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition-transform flex-shrink-0" />
+                {isLoadingHistory && (
+                  <div className="flex items-center gap-2 text-slate-400 p-3">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">Loading recent searches...</span>
                   </div>
+                )}
+
+                {!isLoadingHistory && recentSearches.length === 0 && (
+                  <div className="p-3 rounded-xl text-slate-400 text-sm bg-white/5 border border-white/5">
+                    No recent searches yet.
+                  </div>
+                )}
+
+                {!isLoadingHistory && recentSearches.map((item, i) => (
+                  <button
+                    type="button"
+                    key={`${item.id || item.query}-${i}`}
+                    onClick={() => handleRecentSearchClick(item)}
+                    className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 cursor-pointer text-slate-300 hover:text-white transition-colors group"
+                  >
+                    <div className="min-w-0 text-left">
+                      <span className="truncate block">{item.query}</span>
+                      {item.minPrice != null && (
+                        <span className="text-xs text-emerald-400">Best ${item.minPrice}</span>
+                      )}
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition-transform flex-shrink-0" />
+                  </button>
                 ))}
               </div>
-              <button className="w-full mt-4 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-sm font-bold text-slate-300 transition-colors">
-                Clear History
-              </button>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => navigate("/search-history")}
+                  className="py-3 rounded-xl border border-white/10 hover:bg-white/5 text-sm font-bold text-slate-300 transition-colors"
+                >
+                  View Full History
+                </button>
+                <button
+                  onClick={handleClearHistory}
+                  disabled={isClearingHistory || isLoadingHistory || recentSearches.length === 0}
+                  className="py-3 rounded-xl border border-red-400/30 bg-red-500/5 hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold text-red-300 transition-colors"
+                >
+                  {isClearingHistory ? "Clearing..." : "Clear History"}
+                </button>
+              </div>
             </div>
 
           </div>
@@ -594,31 +648,5 @@ const HomePage = () => {
     </div>
   );
 };
-
-// --- HELPER COMPONENT FOR SIDEBAR ITEMS ---
-const NavItem = ({ icon: Icon, label, active, onClick, showLabel }) => (
-  <button
-    onClick={onClick}
-    className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative
-      ${active ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "text-slate-400 hover:bg-white/5 hover:text-white"}
-      ${!showLabel ? "md:justify-center" : ""}
-    `}
-    title={!showLabel ? label : ""}
-  >
-    <Icon className={`w-5 h-5 flex-shrink-0 ${active ? "text-white" : "text-slate-400 group-hover:text-white"}`} />
-    
-    {/* Label Logic: Always show on Mobile. On Desktop, show based on showLabel prop */}
-    <span className={`font-medium text-sm whitespace-nowrap transition-all ${
-       (!showLabel && "md:hidden")
-    }`}>
-      {label}
-    </span>
-    
-    {/* Active Indicator Strip (Only when expanded) */}
-    {active && showLabel && (
-      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/20 rounded-r-full"></div>
-    )}
-  </button>
-);
 
 export default HomePage;

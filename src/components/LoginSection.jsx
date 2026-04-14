@@ -30,7 +30,7 @@ const LoginSection = () => {
       await AuthService.login(credentials.username, credentials.password);
       navigate("/home");
     } catch (err) {
-      const msg = err.message || "Invalid credentials. Please try again.";
+      const msg = err.error || "Invalid credentials. Please try again.";
       setError(msg);
     } finally {
       setLoading(false);
