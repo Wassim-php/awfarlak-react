@@ -9,6 +9,13 @@ import AuthService from "../services/authService";
 import HistoryService, { mapSearchDetailsToComparisonResults, normalizeSearchHistory } from "../services/historyService";
 import SidebarNav from "./SidebarNav";
 
+const SIMPLE_LOADING_MESSAGES = [
+  "Analyzing your query",
+  "Searching stores",
+  "Comparing prices and delivery",
+  "Preparing your results",
+];
+
 const getResultKey = (item) => {
   if (!item) return "";
   return [
@@ -42,6 +49,22 @@ const HomePage = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isClearingHistory, setIsClearingHistory] = useState(false);
   const [handledNavigationSearchId, setHandledNavigationSearchId] = useState(null);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isLoadingComparison) {
+      setLoadingMessageIndex(0);
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setLoadingMessageIndex((currentIndex) => (currentIndex + 1) % SIMPLE_LOADING_MESSAGES.length);
+    }, 7000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isLoadingComparison]);
 
   const handleRecentSearchClick = async (searchItem) => {
     if (!searchItem?.id) {
@@ -370,9 +393,10 @@ const HomePage = () => {
                 />
                 <button 
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-4 md:px-8 py-2 md:py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/25 text-sm md:text-base whitespace-nowrap"
+                  disabled={isLoadingComparison}
+                  className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-700/60 disabled:cursor-not-allowed text-white px-4 md:px-8 py-2 md:py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/25 text-sm md:text-base whitespace-nowrap"
                 >
-                  Search
+                  {isLoadingComparison ? "Searching..." : "Search"}
                 </button>
               </div>
             </form>
@@ -380,10 +404,18 @@ const HomePage = () => {
 
           {/* COMPARISON RESULTS SECTION */}
           {isLoadingComparison && (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center space-y-4">
-                <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto" />
-                <p className="text-slate-400">Comparing prices across stores...</p>
+            <div className="py-12">
+              <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6 text-center backdrop-blur-sm">
+                <Loader2 className="w-9 h-9 animate-spin text-blue-400 mx-auto" />
+                <p className="mt-4 text-base md:text-lg font-semibold text-white">
+                  {SIMPLE_LOADING_MESSAGES[loadingMessageIndex]}
+                </p>
+                <div className="mt-2 flex items-center justify-center gap-1" aria-hidden="true">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse [animation-delay:200ms]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse [animation-delay:400ms]" />
+                </div>
+                <p className="mt-2 text-sm text-slate-400">This can take up to 60 seconds depending on store response time.</p>
               </div>
             </div>
           )}

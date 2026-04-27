@@ -92,7 +92,7 @@ const SidebarNav = ({
             icon={Info}
             label="About & Help"
             active={activeTab === "about"}
-            onClick={() => setIsMobileMenuOpen(false)}
+            onClick={() => handleNavigate("/about-help")}
             showLabel={isDesktopSidebarOpen}
           />
         </nav>
