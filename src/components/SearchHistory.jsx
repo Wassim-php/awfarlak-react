@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, History, Loader2, Menu, Search } from "lucide-react";
+import { History, Loader2, Menu, Search } from "lucide-react";
 import AuthService from "../services/authService";
 import HistoryService, { normalizeSearchHistory } from "../services/historyService";
 import SidebarNav from "./SidebarNav";
 
 const SearchHistory = () => {
   const navigate = useNavigate();
+  const currentUser = AuthService.getUser();
+  const username = currentUser?.username || currentUser?.name || "User";
+  const profileInitial = username.trim().charAt(0).toUpperCase() || "U";
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchHistory, setSearchHistory] = useState([]);
@@ -106,10 +109,12 @@ const SearchHistory = () => {
             </h1>
           </div>
 
-          <button className="p-2 rounded-full hover:bg-white/5 text-slate-400 hover:text-white transition-colors relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-slate-900"></span>
-          </button>
+          <div
+            className="w-9 h-9 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 border-2 border-slate-800 shadow-lg flex items-center justify-center text-sm font-bold text-slate-950"
+            title={username}
+          >
+            {profileInitial}
+          </div>
         </header>
 
         <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8 pb-20">

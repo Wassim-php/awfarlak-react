@@ -35,9 +35,7 @@ const AuthService = {
 				localStorage.setItem('refreshToken', refreshToken);
 			}
 
-			if (response.data?.user) {
-				localStorage.setItem('user', JSON.stringify(response.data.user));
-			}
+			localStorage.setItem('user', JSON.stringify(response.data?.user || { username }));
 
 			return response.data;
 		} catch (error) {
@@ -76,6 +74,35 @@ const AuthService = {
 		}
 
 		return apiLogoutSucceeded;
+	},
+
+	async updateLocation(location) {
+		try {
+			const response = await apiClient.patch('/auth/location', { location });
+			const storedUser = this.getUser() || {};
+			const updatedUser = {
+				...storedUser,
+				location: response.data?.location ?? location,
+			};
+
+			localStorage.setItem('user', JSON.stringify(updatedUser));
+			return response.data;
+		} catch (error) {
+			throw new Error(getErrorMessage(error, 'Failed to update location. Please try again.'));
+		}
+	},
+
+	async changePassword(oldPassword, newPassword) {
+		try {
+			const response = await apiClient.post('/auth/password', {
+				old_password: oldPassword,
+				new_password: newPassword,
+			});
+
+			return response.data;
+		} catch (error) {
+			throw new Error(getErrorMessage(error, 'Failed to change password. Please try again.'));
+		}
 	},
 
 	isAuthenticated() {

@@ -85,7 +85,7 @@ const SidebarNav = ({
             icon={User}
             label="My Account"
             active={activeTab === "account"}
-            onClick={() => setIsMobileMenuOpen(false)}
+            onClick={() => handleNavigate("/account")}
             showLabel={isDesktopSidebarOpen}
           />
           <NavItem

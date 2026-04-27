@@ -2,16 +2,29 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { 
   Search, History,
-  TrendingUp, Package, ChevronRight, Bell, Menu, Loader2, AlertCircle, Check, Medal
+  TrendingUp, Package, ChevronRight, Menu, Loader2, AlertCircle, Check, Medal
 } from "lucide-react";
 import ProductService from "../services/productService";
 import AuthService from "../services/authService";
 import HistoryService, { mapSearchDetailsToComparisonResults, normalizeSearchHistory } from "../services/historyService";
 import SidebarNav from "./SidebarNav";
 
+const getResultKey = (item) => {
+  if (!item) return "";
+  return [
+    item.product?.url,
+    item.product?.title,
+    item.source,
+    item.pricing?.total_price,
+  ].filter(Boolean).join("|");
+};
+
 const HomePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const currentUser = AuthService.getUser();
+  const username = currentUser?.username || currentUser?.name || "User";
+  const profileInitial = username.trim().charAt(0).toUpperCase() || "U";
   const [searchQuery, setSearchQuery] = useState("");
   
   // State for Desktop (Wide vs Slim)
@@ -174,6 +187,116 @@ const HomePage = () => {
     { id: 3, name: "MacBook Air M2", price: "$1050", change: "+2%", vendor: "Makhsoom" },
   ];
 
+  const renderProductCard = (product, cardKey, options = {}) => {
+    const isExpanded = !!expandedRecommendations[cardKey];
+    const rankingBadges = options.rankingBadges || [];
+
+    return (
+      <div
+        key={cardKey}
+        className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-md hover:bg-white/[0.07] transition-all hover:shadow-lg hover:shadow-blue-500/10 group cursor-pointer"
+      >
+        {rankingBadges.length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {rankingBadges.map((badge) => (
+              <span
+                key={badge.label}
+                className="inline-flex items-center gap-1 rounded-full bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-300 border border-amber-400/20"
+              >
+                <Medal className="w-3.5 h-3.5" />
+                {badge.label}: {badge.value}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-4">
+          <div className="w-20 h-20 rounded-xl bg-slate-800/50 flex-shrink-0 overflow-hidden flex items-center justify-center border border-white/5">
+            {product.product?.image_url ? (
+              <img
+                src={product.product.image_url}
+                alt={product.product.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Package className="w-8 h-8 text-slate-600" />
+            )}
+          </div>
+
+          <div className="flex-1 flex flex-col justify-between min-w-0">
+            <div>
+              <h5 className="font-bold text-white group-hover:text-blue-300 transition-colors line-clamp-2 text-sm">
+                {product.product?.title}
+              </h5>
+              <p className="text-xs text-slate-400 mt-1">
+                {product.source} • {product.store_rating}⭐
+              </p>
+            </div>
+
+            <div className="flex items-end justify-between gap-2">
+              <div>
+                <p className="text-emerald-400 text-lg font-bold">${product.pricing?.total_price}</p>
+                <p className="text-xs text-slate-400">{product.delivery_days}d delivery</p>
+              </div>
+              <div className="bg-white/10 px-2 py-1 rounded text-xs font-semibold text-slate-300">
+                {product.score?.toFixed(1)}/10
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => toggleRecommendation(cardKey)}
+            className="flex-1 bg-white/10 hover:bg-white/15 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+          >
+            {isExpanded ? "Hide Details" : "View Details"}
+          </button>
+          <Link
+            to={product.product?.url || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 text-center bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+          >
+            Go to Store
+          </Link>
+        </div>
+
+        {isExpanded && (
+          <div className="mt-4 p-4 rounded-xl bg-slate-900/60 border border-white/10 space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-slate-400">Item Price</span>
+              <span className="text-white font-medium">${product.pricing?.item_price ?? "N/A"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-400">Shipping</span>
+              <span className="text-white font-medium">${product.pricing?.shipping_fee ?? 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-400">Delivery Time</span>
+              <span className="text-white font-medium">{product.pricing?.delivery_time || product.pricing?.breakdown?.delivery_time || "N/A"}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              <div className="rounded-lg bg-white/5 p-2 text-center">
+                <p className="text-[11px] text-slate-400">Price</p>
+                <p className="text-indigo-400 font-bold">{product.score_breakdown?.price_score?.toFixed(1) ?? "N/A"}</p>
+              </div>
+              <div className="rounded-lg bg-white/5 p-2 text-center">
+                <p className="text-[11px] text-slate-400">Delivery</p>
+                <p className="text-blue-400 font-bold">{product.score_breakdown?.delivery_score?.toFixed(1) ?? "N/A"}</p>
+              </div>
+              <div className="rounded-lg bg-white/5 p-2 text-center">
+                <p className="text-[11px] text-slate-400">Trust</p>
+                <p className="text-emerald-400 font-bold">{product.score_breakdown?.trust_score?.toFixed(1) ?? "N/A"}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 text-white font-sans flex overflow-hidden relative selection:bg-indigo-500 selection:text-white">
       
@@ -208,16 +331,17 @@ const HomePage = () => {
               <Menu className="w-6 h-6" />
             </button>
             <h1 className="text-lg md:text-xl font-medium text-slate-200 truncate">
-              Welcome, <span className="text-white font-bold">User</span>
+              Hello, <span className="text-white font-bold">{username}</span>
             </h1>
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="p-2 rounded-full hover:bg-white/5 text-slate-400 hover:text-white transition-colors relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-slate-900"></span>
-            </button>
-            <div className="w-9 h-9 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 border-2 border-slate-800 shadow-lg"></div>
+            <div
+              className="w-9 h-9 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 border-2 border-slate-800 shadow-lg flex items-center justify-center text-sm font-bold text-slate-950"
+              title={username}
+            >
+              {profileInitial}
+            </div>
           </div>
         </header>
 
@@ -288,7 +412,36 @@ const HomePage = () => {
               {(() => {
                 const sortedResults = [...comparisonResults.results].sort((a, b) => (b.score || 0) - (a.score || 0));
                 const bestDeal = sortedResults[0];
-                const recommendations = sortedResults.slice(1);
+                const byPrice = [...sortedResults].sort((a, b) => (a.pricing?.total_price || Infinity) - (b.pricing?.total_price || Infinity))[0];
+                const byDelivery = [...sortedResults].sort((a, b) => (a.delivery_days || Infinity) - (b.delivery_days || Infinity))[0];
+                const byReliability = [...sortedResults].sort((a, b) => (b.store_rating || 0) - (a.store_rating || 0))[0];
+                const rankingSelections = [
+                  { label: "Best Price", item: byPrice, value: byPrice?.pricing?.total_price ? `$${byPrice.pricing.total_price}` : "N/A" },
+                  { label: "Best Delivery", item: byDelivery, value: byDelivery?.delivery_days ? `${byDelivery.delivery_days} days` : "N/A" },
+                  { label: "Best Reliability", item: byReliability, value: byReliability?.store_rating ? `${byReliability.store_rating}/5` : "N/A" },
+                ].filter((selection) => selection.item);
+                const rankedProducts = rankingSelections.reduce((acc, selection) => {
+                  const key = getResultKey(selection.item);
+                  if (!key) return acc;
+
+                  const existing = acc.find((rankedProduct) => rankedProduct.key === key);
+                  if (existing) {
+                    existing.rankingBadges.push({ label: selection.label, value: selection.value });
+                  } else {
+                    acc.push({
+                      key,
+                      item: selection.item,
+                      rankingBadges: [{ label: selection.label, value: selection.value }],
+                    });
+                  }
+
+                  return acc;
+                }, []);
+                const topProductKeys = new Set([
+                  getResultKey(bestDeal),
+                  ...rankedProducts.map((rankedProduct) => rankedProduct.key),
+                ].filter(Boolean));
+                const recommendations = sortedResults.filter((product) => !topProductKeys.has(getResultKey(product)));
 
                 return (
                   <>
@@ -401,28 +554,14 @@ const HomePage = () => {
                     {/* RANKINGS */}
                     <div className="space-y-4 mt-8">
                       <h4 className="text-xl font-bold text-white">Top Rankings</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {(() => {
-                          const byPrice = [...sortedResults].sort((a, b) => (a.pricing?.total_price || Infinity) - (b.pricing?.total_price || Infinity))[0];
-                          const byDelivery = [...sortedResults].sort((a, b) => (a.delivery_days || Infinity) - (b.delivery_days || Infinity))[0];
-                          const byReliability = [...sortedResults].sort((a, b) => (b.store_rating || 0) - (a.store_rating || 0))[0];
-
-                          const rankCards = [
-                            { label: "Best Price", item: byPrice, value: byPrice?.pricing?.total_price ? `$${byPrice.pricing.total_price}` : "N/A" },
-                            { label: "Best Delivery", item: byDelivery, value: byDelivery?.delivery_days ? `${byDelivery.delivery_days} days` : "N/A" },
-                            { label: "Best Reliability", item: byReliability, value: byReliability?.store_rating ? `${byReliability.store_rating}/5` : "N/A" },
-                          ];
-
-                          return rankCards.map((card) => (
-                            <div key={card.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-md">
-                              <p className="text-xs text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                <Medal className="w-4 h-4 text-amber-400" /> {card.label}
-                              </p>
-                              <p className="text-white font-bold text-sm line-clamp-2">{card.item?.product?.title || "No data"}</p>
-                              <p className="text-emerald-400 font-semibold mt-1">{card.value}</p>
-                            </div>
-                          ));
-                        })()}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {rankedProducts.map((rankedProduct) => (
+                          renderProductCard(
+                            rankedProduct.item,
+                            `ranking-${rankedProduct.key}`,
+                            { rankingBadges: rankedProduct.rankingBadges }
+                          )
+                        ))}
                       </div>
                     </div>
 
@@ -432,102 +571,7 @@ const HomePage = () => {
                         <h4 className="text-xl font-bold text-white">Other Options</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {recommendations.map((product, idx) => (
-                            (() => {
-                              const recommendationKey = `${product.product?.url || product.source || "rec"}-${idx}`;
-                              const isExpanded = !!expandedRecommendations[recommendationKey];
-                              return (
-                            <div 
-                              key={recommendationKey}
-                              className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-md hover:bg-white/[0.07] transition-all hover:shadow-lg hover:shadow-blue-500/10 group cursor-pointer"
-                            >
-                              <div className="flex gap-4">
-                                {/* Small Image */}
-                                <div className="w-20 h-20 rounded-xl bg-slate-800/50 flex-shrink-0 overflow-hidden flex items-center justify-center border border-white/5">
-                                  {product.product?.image_url ? (
-                                    <img 
-                                      src={product.product.image_url}
-                                      alt={product.product.title}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  ) : (
-                                    <Package className="w-8 h-8 text-slate-600" />
-                                  )}
-                                </div>
-
-                                {/* Product Details */}
-                                <div className="flex-1 flex flex-col justify-between min-w-0">
-                                  <div>
-                                    <h5 className="font-bold text-white group-hover:text-blue-300 transition-colors line-clamp-2 text-sm">
-                                      {product.product?.title}
-                                    </h5>
-                                    <p className="text-xs text-slate-400 mt-1">
-                                      {product.source} • {product.store_rating}⭐
-                                    </p>
-                                  </div>
-                                  
-                                  <div className="flex items-end justify-between gap-2">
-                                    <div>
-                                      <p className="text-emerald-400 text-lg font-bold">${product.pricing?.total_price}</p>
-                                      <p className="text-xs text-slate-400">{product.delivery_days}d delivery</p>
-                                    </div>
-                                    <div className="bg-white/10 px-2 py-1 rounded text-xs font-semibold text-slate-300">
-                                      {product.score?.toFixed(1)}/10
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="mt-4 flex items-center gap-3">
-                                <button
-                                  type="button"
-                                  onClick={() => toggleRecommendation(recommendationKey)}
-                                  className="flex-1 bg-white/10 hover:bg-white/15 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
-                                >
-                                  {isExpanded ? "Hide Details" : "View Details"}
-                                </button>
-                                <Link
-                                  to={product.product?.url || "#"}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex-1 text-center bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
-                                >
-                                  Go to Store
-                                </Link>
-                              </div>
-
-                              {isExpanded && (
-                                <div className="mt-4 p-4 rounded-xl bg-slate-900/60 border border-white/10 space-y-2 text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-400">Item Price</span>
-                                    <span className="text-white font-medium">${product.pricing?.item_price ?? "N/A"}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-400">Shipping</span>
-                                    <span className="text-white font-medium">${product.pricing?.shipping_fee ?? 0}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-400">Delivery Time</span>
-                                    <span className="text-white font-medium">{product.pricing?.delivery_time || product.pricing?.breakdown?.delivery_time || "N/A"}</span>
-                                  </div>
-                                  <div className="grid grid-cols-3 gap-2 mt-2">
-                                    <div className="rounded-lg bg-white/5 p-2 text-center">
-                                      <p className="text-[11px] text-slate-400">Price</p>
-                                      <p className="text-indigo-400 font-bold">{product.score_breakdown?.price_score?.toFixed(1) ?? "N/A"}</p>
-                                    </div>
-                                    <div className="rounded-lg bg-white/5 p-2 text-center">
-                                      <p className="text-[11px] text-slate-400">Delivery</p>
-                                      <p className="text-blue-400 font-bold">{product.score_breakdown?.delivery_score?.toFixed(1) ?? "N/A"}</p>
-                                    </div>
-                                    <div className="rounded-lg bg-white/5 p-2 text-center">
-                                      <p className="text-[11px] text-slate-400">Trust</p>
-                                      <p className="text-emerald-400 font-bold">{product.score_breakdown?.trust_score?.toFixed(1) ?? "N/A"}</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                              );
-                            })()
+                            renderProductCard(product, `recommendation-${getResultKey(product) || idx}`)
                           ))}
                         </div>
                       </div>
