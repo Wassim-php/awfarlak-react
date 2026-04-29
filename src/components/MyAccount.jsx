@@ -89,6 +89,7 @@ const MyAccount = () => {
   const username = currentUser?.username || currentUser?.name || "User";
   const email = currentUser?.email || "No email saved";
   const profileInitial = username.trim().charAt(0).toUpperCase() || "U";
+  const isGoogleAccount = currentUser?.authProvider === "google";
 
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -275,7 +276,7 @@ const MyAccount = () => {
             </div>
           </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className={`grid grid-cols-1 gap-6 ${isGoogleAccount ? "" : "lg:grid-cols-2"}`}>
             <section className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 backdrop-blur-md">
               <div className="flex items-start justify-between gap-4 mb-6">
                 <div>
@@ -324,63 +325,65 @@ const MyAccount = () => {
               </div>
             </section>
 
-            <section className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 backdrop-blur-md">
-              <div className="flex items-start gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center border border-blue-400/20">
-                  <ShieldCheck className="w-5 h-5 text-blue-300" />
+            {!isGoogleAccount && (
+              <section className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 backdrop-blur-md">
+                <div className="flex items-start gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center border border-blue-400/20">
+                    <ShieldCheck className="w-5 h-5 text-blue-300" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-bold text-white">Change Password</h2>
+                    <p className="text-sm text-slate-400 mt-1">Enter your current password first.</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-xl md:text-2xl font-bold text-white">Change Password</h2>
-                  <p className="text-sm text-slate-400 mt-1">Enter your current password first.</p>
-                </div>
-              </div>
 
-              <form onSubmit={handlePasswordSubmit} className="space-y-5">
-                <StatusMessage type={passwordStatus.type} message={passwordStatus.message} />
+                <form onSubmit={handlePasswordSubmit} className="space-y-5">
+                  <StatusMessage type={passwordStatus.type} message={passwordStatus.message} />
 
-                <PasswordField
-                  label="Current password"
-                  name="oldPassword"
-                  value={passwordForm.oldPassword}
-                  onChange={handlePasswordChange}
-                  placeholder="Current password"
-                  visible={visiblePasswords.oldPassword}
-                  onToggle={() => togglePasswordVisibility("oldPassword")}
-                  error={passwordErrors.oldPassword}
-                />
+                  <PasswordField
+                    label="Current password"
+                    name="oldPassword"
+                    value={passwordForm.oldPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Current password"
+                    visible={visiblePasswords.oldPassword}
+                    onToggle={() => togglePasswordVisibility("oldPassword")}
+                    error={passwordErrors.oldPassword}
+                  />
 
-                <PasswordField
-                  label="New password"
-                  name="newPassword"
-                  value={passwordForm.newPassword}
-                  onChange={handlePasswordChange}
-                  placeholder="New password"
-                  visible={visiblePasswords.newPassword}
-                  onToggle={() => togglePasswordVisibility("newPassword")}
-                  error={passwordErrors.newPassword}
-                />
+                  <PasswordField
+                    label="New password"
+                    name="newPassword"
+                    value={passwordForm.newPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="New password"
+                    visible={visiblePasswords.newPassword}
+                    onToggle={() => togglePasswordVisibility("newPassword")}
+                    error={passwordErrors.newPassword}
+                  />
 
-                <PasswordField
-                  label="Confirm new password"
-                  name="confirmPassword"
-                  value={passwordForm.confirmPassword}
-                  onChange={handlePasswordChange}
-                  placeholder="Confirm new password"
-                  visible={visiblePasswords.confirmPassword}
-                  onToggle={() => togglePasswordVisibility("confirmPassword")}
-                  error={passwordErrors.confirmPassword}
-                />
+                  <PasswordField
+                    label="Confirm new password"
+                    name="confirmPassword"
+                    value={passwordForm.confirmPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Confirm new password"
+                    visible={visiblePasswords.confirmPassword}
+                    onToggle={() => togglePasswordVisibility("confirmPassword")}
+                    error={passwordErrors.confirmPassword}
+                  />
 
-                <button
-                  type="submit"
-                  disabled={isChangingPassword}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold transition-colors shadow-lg shadow-blue-600/20"
-                >
-                  {isChangingPassword && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {isChangingPassword ? "Updating..." : "Update Password"}
-                </button>
-              </form>
-            </section>
+                  <button
+                    type="submit"
+                    disabled={isChangingPassword}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold transition-colors shadow-lg shadow-blue-600/20"
+                  >
+                    {isChangingPassword && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {isChangingPassword ? "Updating..." : "Update Password"}
+                  </button>
+                </form>
+              </section>
+            )}
           </div>
         </div>
       </main>

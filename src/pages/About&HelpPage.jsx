@@ -7,4 +7,4 @@ const AboutHelpPage = () => {
   )
 }
 
-export default About&HelpPage
+export default AboutHelpPage

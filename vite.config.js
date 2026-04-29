@@ -9,6 +9,11 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
+    port: 5173,
+    strictPort: true,
+    headers: {
+      'Cross-Origin-Opener-Policy': 'unsafe-none',
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8000',

@@ -18,24 +18,31 @@ const extractAccessToken = (data) =>
 
 const extractRefreshToken = (data) => data?.tokens?.refresh || data?.refresh_token || null;
 
+const persistAuthResponse = (data, fallbackUser = {}, authProvider = 'password') => {
+	const token = extractAccessToken(data);
+	const refreshToken = extractRefreshToken(data);
+
+	if (!token) {
+		throw new Error('Login succeeded but no token was returned by the server.');
+	}
+
+	localStorage.setItem('authToken', token);
+
+	if (refreshToken) {
+		localStorage.setItem('refreshToken', refreshToken);
+	}
+
+	localStorage.setItem('user', JSON.stringify({
+		...(data?.user || fallbackUser),
+		authProvider,
+	}));
+};
+
 const AuthService = {
 	async login(username, password) {
 		try {
 			const response = await apiClient.post('/auth/login', { username, password });
-			const token = extractAccessToken(response.data);
-			const refreshToken = extractRefreshToken(response.data);
-
-			if (!token) {
-				throw new Error('Login succeeded but no token was returned by the server.');
-			}
-
-			localStorage.setItem('authToken', token);
-
-			if (refreshToken) {
-				localStorage.setItem('refreshToken', refreshToken);
-			}
-
-			localStorage.setItem('user', JSON.stringify(response.data?.user || { username }));
+			persistAuthResponse(response.data, { username }, 'password');
 
 			return response.data;
 		} catch (error) {
@@ -59,12 +66,28 @@ const AuthService = {
 		}
 	},
 
+	async googleLogin(idToken) {
+		try {
+			const response = await apiClient.post('/auth/google', {
+				id_token: idToken,
+			});
+
+			persistAuthResponse(response.data, {}, 'google');
+			return response.data;
+		} catch (error) {
+			throw new Error(getErrorMessage(error, 'Google login failed. Please try again.'));
+		}
+	},
+
 	async logout() {
 		let apiLogoutSucceeded = false;
+		const refreshToken = this.getRefreshToken();
 
 		try {
-			await apiClient.post('/auth/logout');
-			apiLogoutSucceeded = true;
+			if (refreshToken) {
+				await apiClient.post('/auth/logout', { refresh: refreshToken });
+				apiLogoutSucceeded = true;
+			}
 		} catch (_error) {
 			apiLogoutSucceeded = false;
 		} finally {
