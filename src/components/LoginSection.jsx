@@ -7,7 +7,6 @@ const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 const googleScriptSrc = "https://accounts.google.com/gsi/client";
 
 let googleScriptPromise;
-let initializedGoogleClientId = "";
 
 const loadGoogleScript = () => {
   if (window.google?.accounts?.id) {
@@ -92,30 +91,27 @@ const LoginSection = () => {
 
       if (!isMounted || !window.google?.accounts?.id || !googleButtonRef.current) return;
 
-      if (initializedGoogleClientId !== googleClientId) {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: async (response) => {
-            if (!response?.credential) {
-              setError("Google did not return a sign-in credential.");
-              return;
-            }
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async (response) => {
+          if (!response?.credential) {
+            setError("Google did not return a sign-in credential.");
+            return;
+          }
 
-            setGoogleLoading(true);
-            setError("");
+          setGoogleLoading(true);
+          setError("");
 
-            try {
-              await AuthService.googleLogin(response.credential);
-              navigate("/home");
-            } catch (err) {
-              setError(err.message || "Google login failed. Please try again.");
-            } finally {
-              setGoogleLoading(false);
-            }
-          },
-        });
-        initializedGoogleClientId = googleClientId;
-      }
+          try {
+            await AuthService.googleLogin(response.credential);
+            navigate("/home");
+          } catch (err) {
+            setError(err.message || "Google login failed. Please try again.");
+          } finally {
+            setGoogleLoading(false);
+          }
+        },
+      });
 
       googleButtonRef.current.innerHTML = "";
       window.google.accounts.id.renderButton(googleButtonRef.current, {
@@ -150,7 +146,7 @@ const LoginSection = () => {
       await AuthService.login(credentials.username, credentials.password);
       navigate("/home");
     } catch (err) {
-      const msg = err.error || "Invalid credentials. Please try again.";
+      const msg = err.message || "Invalid credentials. Please try again.";
       setError(msg);
     } finally {
       setLoading(false);
@@ -222,16 +218,10 @@ const LoginSection = () => {
 
             {/* Password Field */}
             <div>
-              <div className="flex items-center justify-between mb-2 ml-1">
+              <div className="mb-2 ml-1">
                 <label className="block text-xs font-bold text-blue-200 uppercase tracking-wider">
                   Password
                 </label>
-                <Link 
-                  to="/forgot-password" 
-                  className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  Forgot?
-                </Link>
               </div>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">

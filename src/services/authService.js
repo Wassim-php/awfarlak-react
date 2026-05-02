@@ -17,6 +17,11 @@ const extractAccessToken = (data) =>
 	data?.tokens?.access || data?.access_token || data?.token || data?.jwt || null;
 
 const extractRefreshToken = (data) => data?.tokens?.refresh || data?.refresh_token || null;
+const AUTH_CHANGE_EVENT = 'awfarlak-auth-change';
+
+const notifyAuthChange = () => {
+	window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+};
 
 const persistAuthResponse = (data, fallbackUser = {}, authProvider = 'password') => {
 	const token = extractAccessToken(data);
@@ -36,6 +41,8 @@ const persistAuthResponse = (data, fallbackUser = {}, authProvider = 'password')
 		...(data?.user || fallbackUser),
 		authProvider,
 	}));
+
+	notifyAuthChange();
 };
 
 const AuthService = {
@@ -94,6 +101,7 @@ const AuthService = {
 			localStorage.removeItem('authToken');
 			localStorage.removeItem('refreshToken');
 			localStorage.removeItem('user');
+			notifyAuthChange();
 		}
 
 		return apiLogoutSucceeded;
@@ -144,6 +152,8 @@ const AuthService = {
 	getRefreshToken() {
 		return localStorage.getItem('refreshToken');
 	},
+
+	AUTH_CHANGE_EVENT,
 };
 
 export default AuthService;

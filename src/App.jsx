@@ -28,33 +28,21 @@ function App() {
 
   // Check authentication status on app load
   useEffect(() => {
-    const checkAuth = async () => {
+    const syncAuthState = () => {
       // Check if token exists in localStorage
       const token = AuthService.getToken();
-      
-      if (token) {
-        // Optionally validate token with backend by making a test API call
-        // This ensures the token is still valid
-        try {
-          // You can add an endpoint like /auth/verify or /auth/me to validate token
-          // For now, we'll just check if token exists
-          setIsAuthenticated(true);
-        } catch (error) {
-          // Token is invalid, clear it
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          setIsAuthenticated(false);
-        }
-      } else {
-        setIsAuthenticated(false);
-      }
-      
-      // Mark auth check as complete
+      setIsAuthenticated(Boolean(token));
       setIsAuthChecked(true);
     };
 
-    checkAuth();
+    syncAuthState();
+    window.addEventListener(AuthService.AUTH_CHANGE_EVENT, syncAuthState);
+    window.addEventListener('storage', syncAuthState);
+
+    return () => {
+      window.removeEventListener(AuthService.AUTH_CHANGE_EVENT, syncAuthState);
+      window.removeEventListener('storage', syncAuthState);
+    };
   }, []);
 
   // Don't render routes until auth check is complete

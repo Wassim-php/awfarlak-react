@@ -46,7 +46,9 @@ const HomePage = () => {
   const [comparisonError, setComparisonError] = useState("");
   const [expandedRecommendations, setExpandedRecommendations] = useState({});
   const [recentSearches, setRecentSearches] = useState([]);
+  const [trendingSearches, setTrendingSearches] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [isLoadingTrending, setIsLoadingTrending] = useState(true);
   const [isClearingHistory, setIsClearingHistory] = useState(false);
   const [handledNavigationSearchId, setHandledNavigationSearchId] = useState(null);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
@@ -84,6 +86,32 @@ const HomePage = () => {
     } finally {
       setIsLoadingComparison(false);
     }
+  };
+
+  const runComparison = async (query) => {
+    const normalizedQuery = (query || "").trim();
+    if (!normalizedQuery) {
+      setComparisonError("Please enter a product name or URL");
+      return;
+    }
+
+    setSearchQuery(normalizedQuery);
+    setIsLoadingComparison(true);
+    setComparisonError("");
+    setComparisonResults(null);
+
+    try {
+      const results = await ProductService.compare({ query: normalizedQuery });
+      setComparisonResults(results);
+    } catch (error) {
+      setComparisonError(error.message || "Failed to compare products. Please try again.");
+    } finally {
+      setIsLoadingComparison(false);
+    }
+  };
+
+  const handleTrendingSearchClick = (trendingItem) => {
+    runComparison(trendingItem?.query);
   };
 
   const handleClearHistory = async () => {
@@ -135,7 +163,26 @@ const HomePage = () => {
       }
     };
 
+    const loadTrendingSearches = async () => {
+      setIsLoadingTrending(true);
+      try {
+        const trendingResponse = await ProductService.getTrendingSearches(3);
+        if (isMounted) {
+          setTrendingSearches(trendingResponse?.searches || []);
+        }
+      } catch (_error) {
+        if (isMounted) {
+          setTrendingSearches([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingTrending(false);
+        }
+      }
+    };
+
     loadSearchHistory();
+    loadTrendingSearches();
 
     return () => {
       isMounted = false;
@@ -184,31 +231,8 @@ const HomePage = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!searchQuery.trim()) {
-      setComparisonError("Please enter a product name or URL");
-      return;
-    }
-
-    setIsLoadingComparison(true);
-    setComparisonError("");
-    setComparisonResults(null);
-
-    try {
-      const results = await ProductService.compare({ query: searchQuery });
-      setComparisonResults(results);
-    } catch (error) {
-      setComparisonError(error.message || "Failed to compare products. Please try again.");
-    } finally {
-      setIsLoadingComparison(false);
-    }
+    runComparison(searchQuery);
   };
-
-  // --- MOCK DATA ---
-  const trendingItems = [
-    { id: 1, name: "iPhone 15 Pro", price: "$999", change: "-12%", vendor: "Ishtari" },
-    { id: 2, name: "Sony WH-1000XM5", price: "$348", change: "-5%", vendor: "Amazon" },
-    { id: 3, name: "MacBook Air M2", price: "$1050", change: "+2%", vendor: "Makhsoom" },
-  ];
 
   const renderProductCard = (product, cardKey, options = {}) => {
     const isExpanded = !!expandedRecommendations[cardKey];
@@ -639,27 +663,41 @@ const HomePage = () => {
             <div className="md:col-span-2 bg-white/5 border border-white/10 rounded-3xl p-5 md:p-6 backdrop-blur-md hover:bg-white/[0.07] transition-colors">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="flex items-center gap-2 text-lg font-bold">
-                  <TrendingUp className="w-5 h-5 text-emerald-400" /> Trending Deals
+                  <TrendingUp className="w-5 h-5 text-emerald-400" /> Trending Searches
                 </h3>
-                <button className="text-xs font-bold text-slate-400 hover:text-white uppercase tracking-wider">View All</button>
               </div>
               <div className="space-y-4">
-                {trendingItems.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors cursor-pointer group border border-transparent hover:border-white/5">
+                {isLoadingTrending && (
+                  <div className="flex items-center gap-2 text-slate-400 p-4">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">Loading trending searches...</span>
+                  </div>
+                )}
+
+                {!isLoadingTrending && trendingSearches.length === 0 && (
+                  <div className="p-4 rounded-2xl text-slate-400 text-sm bg-white/5 border border-white/5">
+                    No trending searches yet.
+                  </div>
+                )}
+
+                {!isLoadingTrending && trendingSearches.map((item, index) => (
+                  <button
+                    type="button"
+                    key={`${item.query}-${index}`}
+                    onClick={() => handleTrendingSearchClick(item)}
+                    className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors cursor-pointer group border border-transparent hover:border-white/5 text-left"
+                  >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-white transition-colors shadow-inner flex-shrink-0">
-                        <Package className="w-6 h-6" />
+                        <Search className="w-6 h-6" />
                       </div>
                       <div className="min-w-0">
-                        <h4 className="font-bold text-white group-hover:text-blue-300 transition-colors truncate">{item.name}</h4>
-                        <p className="text-xs text-slate-400">{item.vendor}</p>
+                        <h4 className="font-bold text-white group-hover:text-blue-300 transition-colors truncate">{item.query}</h4>
+                        <p className="text-xs text-slate-400">Popular comparison query</p>
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0 pl-2">
-                      <p className="font-bold text-lg">{item.price}</p>
-                      <span className="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-md">{item.change}</span>
-                    </div>
-                  </div>
+                    <ChevronRight className="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition-transform flex-shrink-0 ml-3" />
+                  </button>
                 ))}
               </div>
             </div>

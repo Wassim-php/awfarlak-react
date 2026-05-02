@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const AUTH_CHANGE_EVENT = 'awfarlak-auth-change';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -26,7 +27,7 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
-      
+      window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
     }
     return Promise.reject(error);
   }

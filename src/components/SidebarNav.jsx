@@ -61,7 +61,7 @@ const SidebarNav = ({
                 !isDesktopSidebarOpen && "md:opacity-0 md:hidden"
               }`}
             >
-              PriceTracker
+              Awfarlak
             </span>
           </div>
         </div>

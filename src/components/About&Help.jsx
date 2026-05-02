@@ -121,10 +121,10 @@ const AboutHelp = () => {
           <section className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md p-6 md:p-8 space-y-4">
             <div className="flex items-center gap-3">
               <BadgeInfo className="w-6 h-6 text-blue-300" />
-              <h2 className="text-2xl md:text-3xl font-bold">What PriceTracker Does</h2>
+              <h2 className="text-2xl md:text-3xl font-bold">What Awfarlak Does</h2>
             </div>
             <p className="text-slate-300 leading-relaxed max-w-3xl">
-              PriceTracker helps you compare product offers across multiple stores in one place. Our goal is to save
+              Awfarlak helps you compare product offers across multiple stores in one place. Our goal is to save
               you time and reduce guesswork by showing price, delivery, and trust-related details in a clear format.
             </p>
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-200">

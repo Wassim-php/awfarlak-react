@@ -26,6 +26,18 @@ const ProductService = {
             const errorMessage = error.response?.data?.message || error.message || "Error fetching and comparing products";
             throw new Error(errorMessage);
         }
+    },
+
+    async getTrendingSearches(limit = 3) {
+        try {
+            const response = await apiClient.get("/comparisons/trending", {
+                params: { limit },
+            });
+            return response.data;
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || error.message || "Error fetching trending searches";
+            throw new Error(errorMessage);
+        }
     }
 };
 
