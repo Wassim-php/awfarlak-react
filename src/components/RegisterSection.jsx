@@ -76,7 +76,7 @@ const RegisterSection = () => {
       errors.email = "Invalid email";
     }
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$!%*?&])[A-Za-z\d@#$!%*?&]{8,}$/;
     if (!formData.password) {
       errors.password = "Required";
     } else if (!passwordRegex.test(formData.password)) {
