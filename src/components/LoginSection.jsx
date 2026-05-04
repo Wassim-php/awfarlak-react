@@ -186,7 +186,7 @@ const LoginSection = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 mb-4 shadow-lg shadow-blue-500/30">
               <TrendingDown className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-white tracking-tight">Welcome Back</h2>
+            <h2 className="text-3xl font-bold text-white tracking-tight">Welcome Back 2</h2>
             <p className="text-blue-200 mt-2 text-sm">
               Sign in to track prices & deliveries
             </p>
