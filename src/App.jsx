@@ -15,7 +15,11 @@ const ProtectedRoute = ({ isAuthChecked, isAuthenticated }) => {
     return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>Loading...</div>;
   }
 
-  if (!isAuthenticated) {
+  // Check both the prop and localStorage as fallback for immediate post-login access
+  const token = localStorage.getItem('authToken');
+  const isAuth = isAuthenticated || !!token;
+
+  if (!isAuth) {
     return <Navigate to="/login" replace />;
   }
 
