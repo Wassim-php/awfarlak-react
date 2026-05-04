@@ -106,6 +106,8 @@ const LoginSection = () => {
 
             try {
               await AuthService.googleLogin(response.credential);
+              // Dispatch event to notify App component that auth state changed
+              window.dispatchEvent(new Event('authStateChanged'));
               navigate("/home");
             } catch (err) {
               setError(err.message || "Google login failed. Please try again.");
@@ -148,6 +150,8 @@ const LoginSection = () => {
 
     try {
       await AuthService.login(credentials.username, credentials.password);
+      // Dispatch event to notify App component that auth state changed
+      window.dispatchEvent(new Event('authStateChanged'));
       navigate("/home");
     } catch (err) {
       const msg = err.error || "Invalid credentials. Please try again.";

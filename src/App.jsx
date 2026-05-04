@@ -26,35 +26,58 @@ function App() {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check authentication status on app load
-  useEffect(() => {
-    const checkAuth = async () => {
-      // Check if token exists in localStorage
-      const token = AuthService.getToken();
-      
-      if (token) {
-        // Optionally validate token with backend by making a test API call
-        // This ensures the token is still valid
-        try {
-          // You can add an endpoint like /auth/verify or /auth/me to validate token
-          // For now, we'll just check if token exists
-          setIsAuthenticated(true);
-        } catch (error) {
-          // Token is invalid, clear it
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          setIsAuthenticated(false);
-        }
-      } else {
+  // Function to check authentication
+  const checkAuth = async () => {
+    // Check if token exists in localStorage
+    const token = AuthService.getToken();
+    
+    if (token) {
+      // Optionally validate token with backend by making a test API call
+      // This ensures the token is still valid
+      try {
+        // You can add an endpoint like /auth/verify or /auth/me to validate token
+        // For now, we'll just check if token exists
+        setIsAuthenticated(true);
+      } catch (error) {
+        // Token is invalid, clear it
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
         setIsAuthenticated(false);
       }
-      
-      // Mark auth check as complete
-      setIsAuthChecked(true);
+    } else {
+      setIsAuthenticated(false);
+    }
+    
+    // Mark auth check as complete
+    setIsAuthChecked(true);
+  };
+
+  // Check authentication status on app load
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  // Listen for storage changes (handles login in other tabs/windows)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'authToken' || e.key === 'user') {
+        checkAuth();
+      }
     };
 
-    checkAuth();
+    // Listen for custom auth state change events (handles same-tab login)
+    const handleAuthStateChanged = () => {
+      checkAuth();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('authStateChanged', handleAuthStateChanged);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('authStateChanged', handleAuthStateChanged);
+    };
   }, []);
 
   // Don't render routes until auth check is complete
