@@ -35,7 +35,6 @@ const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   
   // State for Desktop (Wide vs Slim)
-  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
   
   // State for Mobile (Open vs Closed)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -241,7 +240,7 @@ const HomePage = () => {
     return (
       <div
         key={cardKey}
-        className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-md hover:bg-white/[0.07] transition-all hover:shadow-lg hover:shadow-blue-500/10 group cursor-pointer"
+        className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-md hover:bg-white/[0.07] transition-all hover:shadow-lg hover:shadow-emerald-500/10 group cursor-pointer"
       >
         {rankingBadges.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
@@ -272,7 +271,7 @@ const HomePage = () => {
 
           <div className="flex-1 flex flex-col justify-between min-w-0">
             <div>
-              <h5 className="font-bold text-white group-hover:text-blue-300 transition-colors line-clamp-2 text-sm">
+              <h5 className="font-bold text-white group-hover:text-emerald-300 transition-colors line-clamp-2 text-sm">
                 {product.product?.title}
               </h5>
               <p className="text-xs text-slate-400 mt-1">
@@ -304,7 +303,7 @@ const HomePage = () => {
             to={product.product?.url || "#"}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 text-center bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+            className="flex-1 text-center bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
           >
             Go to Store
           </Link>
@@ -327,11 +326,11 @@ const HomePage = () => {
             <div className="grid grid-cols-3 gap-2 mt-2">
               <div className="rounded-lg bg-white/5 p-2 text-center">
                 <p className="text-[11px] text-slate-400">Price</p>
-                <p className="text-indigo-400 font-bold">{product.score_breakdown?.price_score?.toFixed(1) ?? "N/A"}</p>
+                <p className="text-amber-400 font-bold">{product.score_breakdown?.price_score?.toFixed(1) ?? "N/A"}</p>
               </div>
               <div className="rounded-lg bg-white/5 p-2 text-center">
                 <p className="text-[11px] text-slate-400">Delivery</p>
-                <p className="text-blue-400 font-bold">{product.score_breakdown?.delivery_score?.toFixed(1) ?? "N/A"}</p>
+                <p className="text-emerald-400 font-bold">{product.score_breakdown?.delivery_score?.toFixed(1) ?? "N/A"}</p>
               </div>
               <div className="rounded-lg bg-white/5 p-2 text-center">
                 <p className="text-[11px] text-slate-400">Trust</p>
@@ -345,20 +344,18 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white font-sans flex overflow-hidden relative selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-[color:var(--color-bg)] text-[color:var(--color-text)] font-sans flex overflow-hidden relative selection:bg-amber-400 selection:text-slate-900">
       
       {/* --- BACKGROUND ATMOSPHERE --- */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-emerald-500/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-amber-400/10 rounded-full blur-[120px]" />
       </div>
 
       {/* --- MOBILE OVERLAY BACKDROP --- */}
       <SidebarNav
         activeTab="home"
         onLogout={handleLogout}
-        isDesktopSidebarOpen={isDesktopSidebarOpen}
-        setIsDesktopSidebarOpen={setIsDesktopSidebarOpen}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
@@ -405,7 +402,7 @@ const HomePage = () => {
 
             {/* THE GLOWING SEARCH BAR */}
             <form onSubmit={handleSearch} className="max-w-3xl mx-auto relative group z-20 px-2">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-amber-400 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
               <div className="relative flex items-center bg-slate-800/80 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl transition-transform group-hover:scale-[1.01]">
                 <Search className="w-5 h-5 md:w-6 md:h-6 text-slate-400 ml-2 md:ml-4 flex-shrink-0" />
                 <input 
@@ -418,7 +415,7 @@ const HomePage = () => {
                 <button 
                   type="submit"
                   disabled={isLoadingComparison}
-                  className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-700/60 disabled:cursor-not-allowed text-white px-4 md:px-8 py-2 md:py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/25 text-sm md:text-base whitespace-nowrap"
+                  className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-700/60 disabled:cursor-not-allowed text-white px-4 md:px-8 py-2 md:py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-emerald-500/25 text-sm md:text-base whitespace-nowrap"
                 >
                   {isLoadingComparison ? "Searching..." : "Search"}
                 </button>
@@ -430,14 +427,14 @@ const HomePage = () => {
           {isLoadingComparison && (
             <div className="py-12">
               <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6 text-center backdrop-blur-sm">
-                <Loader2 className="w-9 h-9 animate-spin text-blue-400 mx-auto" />
+                <Loader2 className="w-9 h-9 animate-spin text-emerald-400 mx-auto" />
                 <p className="mt-4 text-base md:text-lg font-semibold text-white">
                   {SIMPLE_LOADING_MESSAGES[loadingMessageIndex]}
                 </p>
                 <div className="mt-2 flex items-center justify-center gap-1" aria-hidden="true">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse [animation-delay:200ms]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-pulse [animation-delay:400ms]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse [animation-delay:200ms]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse [animation-delay:400ms]" />
                 </div>
                 <p className="mt-2 text-sm text-slate-400">This can take up to 60 seconds depending on store response time.</p>
               </div>
@@ -457,7 +454,7 @@ const HomePage = () => {
           {comparisonResults && comparisonResults.results && comparisonResults.results.length > 0 && (
             <div className="space-y-8 animate-fade-in-up">
               <div className="text-center space-y-2 mb-8">
-                <h3 className="text-2xl md:text-3xl font-bold">Search Results for "<span className="text-blue-400">{searchQuery}</span>"</h3>
+                <h3 className="text-2xl md:text-3xl font-bold">Search Results for "<span className="text-emerald-400">{searchQuery}</span>"</h3>
                 <p className="text-slate-400 text-sm">
                   Found {comparisonResults.results.length} option{comparisonResults.results.length !== 1 ? 's' : ''} • 
                   Best price: <span className="text-emerald-400 font-semibold">${comparisonResults.metadata?.min_price || 'N/A'}</span>
@@ -503,11 +500,11 @@ const HomePage = () => {
                   <>
                     {/* Featured Card */}
                     <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl blur-xl opacity-20"></div>
-                      <div className="relative bg-gradient-to-br from-blue-600/20 to-indigo-600/20 border-2 border-blue-500/30 rounded-3xl p-6 md:p-8 backdrop-blur-md hover:border-blue-500/50 transition-all">
+                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-amber-400 rounded-3xl blur-xl opacity-20"></div>
+                      <div className="relative bg-gradient-to-br from-emerald-600/20 to-amber-400/20 border-2 border-emerald-500/30 rounded-3xl p-6 md:p-8 backdrop-blur-md hover:border-emerald-500/50 transition-all">
                         <div className="flex items-center gap-3 mb-4">
-                          <span className="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full">⭐ BEST DEAL</span>
-                          <span className="text-sm text-slate-300">Score: <span className="text-blue-400 font-bold">{bestDeal.score?.toFixed(1)}/10</span></span>
+                          <span className="px-3 py-1 bg-emerald-600 text-white text-xs font-bold rounded-full">⭐ BEST DEAL</span>
+                          <span className="text-sm text-slate-300">Score: <span className="text-emerald-400 font-bold">{bestDeal.score?.toFixed(1)}/10</span></span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
@@ -544,7 +541,7 @@ const HomePage = () => {
                               <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 line-clamp-2">
                                 {bestDeal.product?.title}
                               </h3>
-                              <p className="text-slate-400 text-sm line-clamp-2">From: <span className="text-blue-300 font-semibold capitalize">{bestDeal.source}</span></p>
+                              <p className="text-slate-400 text-sm line-clamp-2">From: <span className="text-emerald-300 font-semibold capitalize">{bestDeal.source}</span></p>
                             </div>
 
                             {/* Pricing Breakdown */}
@@ -569,11 +566,11 @@ const HomePage = () => {
                             <div className="grid grid-cols-3 gap-3">
                               <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
                                 <p className="text-xs text-slate-400 mb-1">Price</p>
-                                <p className="text-indigo-400 font-bold">{bestDeal.score_breakdown?.price_score?.toFixed(1)}</p>
+                                <p className="text-amber-400 font-bold">{bestDeal.score_breakdown?.price_score?.toFixed(1)}</p>
                               </div>
                               <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
                                 <p className="text-xs text-slate-400 mb-1">Delivery</p>
-                                <p className="text-blue-400 font-bold">{bestDeal.score_breakdown?.delivery_score?.toFixed(1)}</p>
+                                <p className="text-emerald-400 font-bold">{bestDeal.score_breakdown?.delivery_score?.toFixed(1)}</p>
                               </div>
                               <div className="bg-white/5 rounded-xl p-3 text-center border border-white/5">
                                 <p className="text-xs text-slate-400 mb-1">Trust</p>
@@ -598,7 +595,7 @@ const HomePage = () => {
                               to={bestDeal.product?.url || "#"}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="block w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-blue-500/25"
+                              className="block w-full text-center bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-emerald-500/25"
                             >
                               View on Store →
                             </Link>
@@ -692,7 +689,7 @@ const HomePage = () => {
                         <Search className="w-6 h-6" />
                       </div>
                       <div className="min-w-0">
-                        <h4 className="font-bold text-white group-hover:text-blue-300 transition-colors truncate">{item.query}</h4>
+                        <h4 className="font-bold text-white group-hover:text-emerald-300 transition-colors truncate">{item.query}</h4>
                         <p className="text-xs text-slate-400">Popular comparison query</p>
                       </div>
                     </div>
@@ -705,7 +702,7 @@ const HomePage = () => {
             {/* Widget: Recent History */}
             <div className="bg-white/5 border border-white/10 rounded-3xl p-5 md:p-6 backdrop-blur-md flex flex-col hover:bg-white/[0.07] transition-colors">
               <h3 className="flex items-center gap-2 text-lg font-bold mb-6">
-                <History className="w-5 h-5 text-blue-400" /> Recent Searches
+                <History className="w-5 h-5 text-emerald-400" /> Recent Searches
               </h3>
               <div className="flex-1 space-y-3">
                 {isLoadingHistory && (

@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+@layer base {
+	:root {
+		--color-bg: #0F172A;
+		--color-surface: #111827;
+		--color-surface-strong: #F8FAFC;
+		--color-text: #F8FAFC;
+		--color-muted: #64748B;
+		--color-accent: #10B981;
+		--color-highlight: #F59E0B;
+	}
+
+	body {
+		background-color: var(--color-bg);
+		color: var(--color-text);
+	}
+
+	::selection {
+		background-color: var(--color-highlight);
+		color: #0F172A;
+	}
+}

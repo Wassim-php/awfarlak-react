@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import AuthService from "../services/authService";
 import SidebarNav from "./SidebarNav";
+import MagicBento from "./MagicBento";
 
 const HOW_IT_WORKS = [
   {
@@ -55,7 +56,6 @@ const AboutHelp = () => {
   const username = currentUser?.username || currentUser?.name || "User";
   const profileInitial = username.trim().charAt(0).toUpperCase() || "U";
 
-  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -80,17 +80,15 @@ const AboutHelp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white font-sans flex overflow-hidden relative selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-[color:var(--color-bg)] text-[color:var(--color-text)] font-sans flex overflow-hidden relative selection:bg-amber-400 selection:text-slate-900">
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-emerald-500/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-amber-400/10 rounded-full blur-[120px]" />
       </div>
 
       <SidebarNav
         activeTab="about"
         onLogout={handleLogout}
-        isDesktopSidebarOpen={isDesktopSidebarOpen}
-        setIsDesktopSidebarOpen={setIsDesktopSidebarOpen}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
@@ -120,7 +118,7 @@ const AboutHelp = () => {
         <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6 pb-20">
           <section className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md p-6 md:p-8 space-y-4">
             <div className="flex items-center gap-3">
-              <BadgeInfo className="w-6 h-6 text-blue-300" />
+              <BadgeInfo className="w-6 h-6 text-emerald-300" />
               <h2 className="text-2xl md:text-3xl font-bold">What Awfarlak Does</h2>
             </div>
             <p className="text-slate-300 leading-relaxed max-w-3xl">
@@ -133,26 +131,31 @@ const AboutHelp = () => {
             </div>
           </section>
 
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {HOW_IT_WORKS.map((step) => {
-              const Icon = step.icon;
-
-              return (
-                <article
-                  key={step.title}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-5 hover:bg-white/[0.07] transition-colors"
-                >
-                  <Icon className="w-6 h-6 text-blue-300 mb-3" />
-                  <h3 className="text-lg font-bold mb-2">{step.title}</h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">{step.description}</p>
-                </article>
-              );
-            })}
+          <section>
+            <MagicBento
+              items={HOW_IT_WORKS.map((step, index) => ({
+                color: "#0F172A",
+                title: step.title,
+                description: step.description,
+                label: `Step ${index + 1}`,
+              }))}
+              layout="simple"
+              textAutoHide={true}
+              enableStars={true}
+              enableSpotlight={true}
+              enableBorderGlow={true}
+              enableTilt={true}
+              enableMagnetism={true}
+              clickEffect={true}
+              spotlightRadius={300}
+              particleCount={12}
+              glowColor="16, 185, 129"
+            />
           </section>
 
           <section className="rounded-3xl border border-white/10 bg-white/5 p-5 md:p-7 space-y-5">
             <div className="flex items-center gap-2">
-              <CircleHelp className="w-5 h-5 text-indigo-300" />
+              <CircleHelp className="w-5 h-5 text-amber-300" />
               <h3 className="text-xl font-bold">Frequently Asked Questions</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">

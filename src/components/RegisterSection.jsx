@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { User, Mail, Lock, Eye, EyeOff, UserPlus, AlertCircle, CheckCircle, MapPin, Building2, Home } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, MapPin, Building2, Home } from "lucide-react";
 import authService from "../services/authService";
 
 const InputField = ({
@@ -16,12 +16,12 @@ const InputField = ({
   onToggle,
 }) => (
   <div>
-    <label className="block text-xs font-bold text-blue-200 uppercase tracking-wider mb-1.5 ml-1">
+    <label className="block text-xs font-bold text-emerald-200 uppercase tracking-wider mb-1.5 ml-1">
       {label}
     </label>
     <div className="relative group">
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <Icon className={`h-4 w-4 ${error ? "text-red-400" : "text-blue-300"} group-focus-within:text-white transition-colors`} />
+        <Icon className={`h-4 w-4 ${error ? "text-red-400" : "text-emerald-300"} group-focus-within:text-white transition-colors`} />
       </div>
       <input
         type={type}
@@ -31,7 +31,7 @@ const InputField = ({
         className={`block w-full pl-10 pr-4 py-3 bg-slate-800/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-1 transition-all text-sm font-medium
           ${error
             ? "border-red-500/50 focus:border-red-500 focus:ring-red-500"
-            : "border-slate-600 focus:border-blue-500 focus:ring-blue-500"
+            : "border-slate-600 focus:border-emerald-500 focus:ring-emerald-500"
           }`}
         placeholder={placeholder}
       />
@@ -127,27 +127,27 @@ const RegisterSection = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative overflow-hidden font-sans py-10">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden font-sans py-10">
       
       {/* Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-emerald-500/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-emerald-500/15 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Main Card */}
       <div className="w-full max-w-lg bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden z-10 mx-4">
         
         {/* Top Bar */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500" />
+        <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 to-emerald-400" />
 
         <div className="p-8">
           
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 mb-4 shadow-lg shadow-blue-500/30">
-              <UserPlus className="w-7 h-7 text-white" />
+          <div className="text-center mb-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-emerald-500/12 mb-2 border border-emerald-400/35 shadow-xl shadow-emerald-500/20">
+              <img src="/images/awfarlak-logo.png" alt="Awfarlak" className="w-14 h-14 object-contain" />
             </div>
             <h2 className="text-2xl font-bold text-white tracking-tight">Create Account</h2>
-            <p className="text-blue-200 mt-2 text-sm">Join the platform to compare & save.</p>
+            <p className="text-emerald-200 mt-1 text-sm">Join the platform to compare & save.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -187,7 +187,7 @@ const RegisterSection = () => {
 
             {/* --- LOCATION SELECTOR --- */}
             <div>
-              <label className="block text-xs font-bold text-blue-200 uppercase tracking-wider mb-2.5 ml-1">
+              <label className="block text-xs font-bold text-emerald-200 uppercase tracking-wider mb-2.5 ml-1">
                 Location
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -196,7 +196,7 @@ const RegisterSection = () => {
                   onClick={() => handleLocationChange("Inside Beirut")}
                   className={`cursor-pointer rounded-xl border p-3 flex flex-col items-center justify-center transition-all duration-200 ${
                     formData.locationType === "Inside Beirut"
-                      ? "bg-blue-600 border-blue-500 shadow-lg shadow-blue-900/50"
+                      ? "bg-emerald-600 border-emerald-500 shadow-lg shadow-emerald-900/50"
                       : "bg-slate-800/50 border-slate-600 hover:bg-slate-700/50"
                   }`}
                 >
@@ -209,7 +209,7 @@ const RegisterSection = () => {
                   onClick={() => handleLocationChange("Outside Beirut")}
                   className={`cursor-pointer rounded-xl border p-3 flex flex-col items-center justify-center transition-all duration-200 ${
                     formData.locationType === "Outside Beirut"
-                      ? "bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-900/50"
+                      ? "bg-emerald-600 border-emerald-500 shadow-lg shadow-emerald-900/50"
                       : "bg-slate-800/50 border-slate-600 hover:bg-slate-700/50"
                   }`}
                 >
@@ -246,12 +246,12 @@ const RegisterSection = () => {
                     className="sr-only"
                   />
                   <div className={`w-5 h-5 border-2 rounded transition-all flex items-center justify-center
-                    ${formData.accept ? "bg-blue-500 border-blue-500" : "border-slate-500 bg-slate-800/50 group-hover:border-blue-400"}`}>
+                    ${formData.accept ? "bg-emerald-500 border-emerald-500" : "border-slate-500 bg-slate-800/50 group-hover:border-emerald-400"}`}>
                     {formData.accept && <CheckCircle className="w-3.5 h-3.5 text-white" />}
                   </div>
                 </div>
                 <span className="ml-3 text-sm text-slate-300">
-                  I agree to the <a href="#" className="text-blue-400 hover:text-blue-300 font-bold underline decoration-blue-500/30">Terms</a> & <a href="#" className="text-blue-400 hover:text-blue-300 font-bold underline decoration-blue-500/30">Policies</a>
+                  I agree to the <a href="#" className="text-emerald-400 hover:text-emerald-300 font-bold underline decoration-emerald-500/30">Terms</a> & <a href="#" className="text-emerald-400 hover:text-emerald-300 font-bold underline decoration-emerald-500/30">Policies</a>
                 </span>
               </label>
               {formErrors.accept && <p className="text-red-400 text-xs mt-1 ml-8">{formErrors.accept}</p>}
@@ -261,7 +261,7 @@ const RegisterSection = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full relative flex justify-center items-center py-4 px-4 border border-transparent rounded-xl text-white font-bold text-md uppercase tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-blue-500 transition-all shadow-lg shadow-blue-600/20 mt-4 ${
+              className={`w-full relative flex justify-center items-center py-4 px-4 border border-transparent rounded-xl text-white font-bold text-md uppercase tracking-wide bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-emerald-500 transition-all shadow-lg shadow-emerald-600/20 mt-4 ${
                 isSubmitting ? "opacity-70 cursor-not-allowed" : "hover:-translate-y-0.5"
               }`}
             >
@@ -273,7 +273,7 @@ const RegisterSection = () => {
           <div className="mt-8 text-center">
             <p className="text-slate-400 text-sm">
               Already have an account?{" "}
-              <Link to="/login" className="font-bold text-white hover:text-blue-300 transition-colors underline decoration-blue-500/50 hover:decoration-blue-300">
+              <Link to="/login" className="font-bold text-white hover:text-emerald-300 transition-colors underline decoration-emerald-500/50 hover:decoration-emerald-300">
                 Log in
               </Link>
             </p>

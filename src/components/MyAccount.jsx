@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import AuthService from "../services/authService";
 import SidebarNav from "./SidebarNav";
+import MagicBento from "./MagicBento";
 
 const PasswordField = ({
   label,
@@ -27,14 +28,14 @@ const PasswordField = ({
   error,
 }) => (
   <div>
-    <label className="block text-xs font-bold text-blue-200 uppercase tracking-wider mb-2 ml-1">
+    <label className="block text-xs font-bold text-emerald-200 uppercase tracking-wider mb-2 ml-1">
       {label}
     </label>
     <div className="relative group">
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
         <KeyRound
           className={`h-4 w-4 ${
-            error ? "text-red-400" : "text-blue-300"
+            error ? "text-red-400" : "text-emerald-300"
           } group-focus-within:text-white transition-colors`}
         />
       </div>
@@ -47,7 +48,7 @@ const PasswordField = ({
         className={`block w-full pl-10 pr-11 py-3 bg-slate-800/50 border rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-1 transition-all text-sm font-medium ${
           error
             ? "border-red-500/50 focus:border-red-500 focus:ring-red-500"
-            : "border-slate-600 focus:border-blue-500 focus:ring-blue-500"
+            : "border-slate-600 focus:border-emerald-500 focus:ring-emerald-500"
         }`}
       />
       <button
@@ -91,7 +92,6 @@ const MyAccount = () => {
   const profileInitial = username.trim().charAt(0).toUpperCase() || "U";
   const isGoogleAccount = currentUser?.authProvider === "google";
 
-  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isInsideBeirut, setIsInsideBeirut] = useState(Boolean(currentUser?.location));
   const [locationStatus, setLocationStatus] = useState({ type: "", message: "" });
@@ -222,17 +222,15 @@ const MyAccount = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white font-sans flex overflow-hidden relative selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-[color:var(--color-bg)] text-[color:var(--color-text)] font-sans flex overflow-hidden relative selection:bg-amber-400 selection:text-slate-900">
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-emerald-500/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-amber-400/10 rounded-full blur-[120px]" />
       </div>
 
       <SidebarNav
         activeTab="account"
         onLogout={handleLogout}
-        isDesktopSidebarOpen={isDesktopSidebarOpen}
-        setIsDesktopSidebarOpen={setIsDesktopSidebarOpen}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
@@ -267,7 +265,7 @@ const MyAccount = () => {
               </div>
               <div className="min-w-0">
                 <p className="flex items-center gap-2 text-slate-400 text-sm font-semibold">
-                  <User className="w-4 h-4 text-blue-300" />
+                  <User className="w-4 h-4 text-emerald-300" />
                   Account details
                 </p>
                 <h2 className="text-2xl md:text-3xl font-bold text-white truncate">{username}</h2>
@@ -276,114 +274,141 @@ const MyAccount = () => {
             </div>
           </section>
 
-          <div className={`grid grid-cols-1 gap-6 ${isGoogleAccount ? "" : "lg:grid-cols-2"}`}>
-            <section className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 backdrop-blur-md">
-              <div className="flex items-start justify-between gap-4 mb-6">
-                <div>
-                  <h2 className="text-xl md:text-2xl font-bold text-white">Delivery Location</h2>
-                  <p className="text-sm text-slate-400 mt-1">
-                    Used for delivery price and timing during comparisons.
-                  </p>
-                </div>
-                {isSavingLocation && <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />}
-              </div>
+          <div className="mt-2">
+            <MagicBento
+              items={[
+                {
+                  color: "#0F172A",
+                  content: (
+                    <>
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h2 className="text-xl md:text-2xl font-bold text-white">Delivery Location</h2>
+                          <p className="text-sm text-slate-400 mt-1">
+                            Used for delivery price and timing during comparisons.
+                          </p>
+                        </div>
+                        {isSavingLocation && <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />}
+                      </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleLocationSelect(true)}
-                  disabled={isSavingLocation}
-                  className={`rounded-2xl border p-4 text-left transition-all ${
-                    isInsideBeirut
-                      ? "bg-blue-600 border-blue-400 shadow-lg shadow-blue-900/30"
-                      : "bg-slate-800/50 border-slate-600 hover:bg-slate-700/50"
-                  } disabled:cursor-not-allowed disabled:opacity-70`}
-                >
-                  <Building2 className="w-6 h-6 mb-3 text-white" />
-                  <span className="block text-sm font-bold text-white">Inside Beirut</span>
-                  <span className="block text-xs text-blue-100/80 mt-1">Beirut delivery zone</span>
-                </button>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleLocationSelect(true)}
+                          disabled={isSavingLocation}
+                          className={`rounded-2xl border p-4 text-left transition-all ${
+                            isInsideBeirut
+                              ? "bg-emerald-600 border-emerald-400 shadow-lg shadow-emerald-900/30"
+                              : "bg-slate-800/50 border-slate-600 hover:bg-slate-700/50"
+                          } disabled:cursor-not-allowed disabled:opacity-70`}
+                        >
+                          <Building2 className="w-6 h-6 mb-3 text-white" />
+                          <span className="block text-sm font-bold text-white">Inside Beirut</span>
+                          <span className="block text-xs text-emerald-100/80 mt-1">Beirut delivery zone</span>
+                        </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleLocationSelect(false)}
-                  disabled={isSavingLocation}
-                  className={`rounded-2xl border p-4 text-left transition-all ${
-                    !isInsideBeirut
-                      ? "bg-indigo-600 border-indigo-400 shadow-lg shadow-indigo-900/30"
-                      : "bg-slate-800/50 border-slate-600 hover:bg-slate-700/50"
-                  } disabled:cursor-not-allowed disabled:opacity-70`}
-                >
-                  <MapPin className="w-6 h-6 mb-3 text-white" />
-                  <span className="block text-sm font-bold text-white">Outside Beirut</span>
-                  <span className="block text-xs text-indigo-100/80 mt-1">All other areas</span>
-                </button>
-              </div>
+                        <button
+                          type="button"
+                          onClick={() => handleLocationSelect(false)}
+                          disabled={isSavingLocation}
+                          className={`rounded-2xl border p-4 text-left transition-all ${
+                            !isInsideBeirut
+                              ? "bg-emerald-600 border-emerald-400 shadow-lg shadow-emerald-900/30"
+                              : "bg-slate-800/50 border-slate-600 hover:bg-slate-700/50"
+                          } disabled:cursor-not-allowed disabled:opacity-70`}
+                        >
+                          <MapPin className="w-6 h-6 mb-3 text-white" />
+                          <span className="block text-sm font-bold text-white">Outside Beirut</span>
+                          <span className="block text-xs text-emerald-100/80 mt-1">All other areas</span>
+                        </button>
+                      </div>
 
-              <div className="mt-5">
-                <StatusMessage type={locationStatus.type} message={locationStatus.message} />
-              </div>
-            </section>
+                      <div>
+                        <StatusMessage type={locationStatus.type} message={locationStatus.message} />
+                      </div>
+                    </>
+                  ),
+                },
+                ...(!isGoogleAccount
+                  ? [
+                      {
+                        color: "#0F172A",
+                        content: (
+                          <>
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center border border-emerald-400/20">
+                                <ShieldCheck className="w-5 h-5 text-emerald-300" />
+                              </div>
+                              <div>
+                                <h2 className="text-xl md:text-2xl font-bold text-white">Change Password</h2>
+                                <p className="text-sm text-slate-400 mt-1">Enter your current password first.</p>
+                              </div>
+                            </div>
 
-            {!isGoogleAccount && (
-              <section className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 backdrop-blur-md">
-                <div className="flex items-start gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center border border-blue-400/20">
-                    <ShieldCheck className="w-5 h-5 text-blue-300" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-white">Change Password</h2>
-                    <p className="text-sm text-slate-400 mt-1">Enter your current password first.</p>
-                  </div>
-                </div>
+                            <form onSubmit={handlePasswordSubmit} className="space-y-5">
+                              <StatusMessage type={passwordStatus.type} message={passwordStatus.message} />
 
-                <form onSubmit={handlePasswordSubmit} className="space-y-5">
-                  <StatusMessage type={passwordStatus.type} message={passwordStatus.message} />
+                              <PasswordField
+                                label="Current password"
+                                name="oldPassword"
+                                value={passwordForm.oldPassword}
+                                onChange={handlePasswordChange}
+                                placeholder="Current password"
+                                visible={visiblePasswords.oldPassword}
+                                onToggle={() => togglePasswordVisibility("oldPassword")}
+                                error={passwordErrors.oldPassword}
+                              />
 
-                  <PasswordField
-                    label="Current password"
-                    name="oldPassword"
-                    value={passwordForm.oldPassword}
-                    onChange={handlePasswordChange}
-                    placeholder="Current password"
-                    visible={visiblePasswords.oldPassword}
-                    onToggle={() => togglePasswordVisibility("oldPassword")}
-                    error={passwordErrors.oldPassword}
-                  />
+                              <PasswordField
+                                label="New password"
+                                name="newPassword"
+                                value={passwordForm.newPassword}
+                                onChange={handlePasswordChange}
+                                placeholder="New password"
+                                visible={visiblePasswords.newPassword}
+                                onToggle={() => togglePasswordVisibility("newPassword")}
+                                error={passwordErrors.newPassword}
+                              />
 
-                  <PasswordField
-                    label="New password"
-                    name="newPassword"
-                    value={passwordForm.newPassword}
-                    onChange={handlePasswordChange}
-                    placeholder="New password"
-                    visible={visiblePasswords.newPassword}
-                    onToggle={() => togglePasswordVisibility("newPassword")}
-                    error={passwordErrors.newPassword}
-                  />
+                              <PasswordField
+                                label="Confirm new password"
+                                name="confirmPassword"
+                                value={passwordForm.confirmPassword}
+                                onChange={handlePasswordChange}
+                                placeholder="Confirm new password"
+                                visible={visiblePasswords.confirmPassword}
+                                onToggle={() => togglePasswordVisibility("confirmPassword")}
+                                error={passwordErrors.confirmPassword}
+                              />
 
-                  <PasswordField
-                    label="Confirm new password"
-                    name="confirmPassword"
-                    value={passwordForm.confirmPassword}
-                    onChange={handlePasswordChange}
-                    placeholder="Confirm new password"
-                    visible={visiblePasswords.confirmPassword}
-                    onToggle={() => togglePasswordVisibility("confirmPassword")}
-                    error={passwordErrors.confirmPassword}
-                  />
-
-                  <button
-                    type="submit"
-                    disabled={isChangingPassword}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold transition-colors shadow-lg shadow-blue-600/20"
-                  >
-                    {isChangingPassword && <Loader2 className="w-4 h-4 animate-spin" />}
-                    {isChangingPassword ? "Updating..." : "Update Password"}
-                  </button>
-                </form>
-              </section>
-            )}
+                              <button
+                                type="submit"
+                                disabled={isChangingPassword}
+                                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold transition-colors shadow-lg shadow-emerald-600/20"
+                              >
+                                {isChangingPassword && <Loader2 className="w-4 h-4 animate-spin" />}
+                                {isChangingPassword ? "Updating..." : "Update Password"}
+                              </button>
+                            </form>
+                          </>
+                        ),
+                      },
+                    ]
+                  : []),
+              ]}
+              layout="simple"
+              gridStyle={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}
+              textAutoHide={false}
+              enableStars={true}
+              enableSpotlight={true}
+              enableBorderGlow={true}
+              enableTilt={false}
+              enableMagnetism={false}
+              clickEffect={false}
+              spotlightRadius={300}
+              particleCount={12}
+              glowColor="16, 185, 129"
+            />
           </div>
         </div>
       </main>
