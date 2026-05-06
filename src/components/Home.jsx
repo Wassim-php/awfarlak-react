@@ -579,16 +579,13 @@ const HomePage = () => {
                             </div>
 
                             {/* Delivery Info */}
-                            <div className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-2">
-                              <p className="text-sm text-slate-300">
-                                <span className="font-semibold">📦 Delivery:</span> {bestDeal.delivery_days} business days
-                              </p>
-                              {bestDeal.pricing?.delivery_time && (
+                            {bestDeal.pricing?.delivery_time && (
+                              <div className="bg-white/5 rounded-xl p-4 border border-white/5">
                                 <p className="text-sm text-slate-300">
                                   <span className="font-semibold">⏱️ Time:</span> {bestDeal.pricing.delivery_time}
                                 </p>
-                              )}
-                            </div>
+                              </div>
+                            )}
 
                             {/* Action Button */}
                             <Link
